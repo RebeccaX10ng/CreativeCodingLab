@@ -111,7 +111,7 @@ function draw() {
     }
     if (mood >= 50 && surviveTime >= 60 && cellSplit == true) {
         image(heart, random(width), random(height), 35, 30)
-        if (surviveTime >= 65) {
+        if (surviveTime >= 63) {
             image(happyEnding, 0, 0, 800, 500)
             fill(255)
             fillColor = (0, 0, 0, 0)
