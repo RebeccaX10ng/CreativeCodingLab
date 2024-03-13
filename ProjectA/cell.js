@@ -235,8 +235,8 @@ function updateCells(i) {
             speedX[i] -= 0.1;
             speedY[i] -= 0.1;
             mood -= 30;
-            triX = -100
-            triY = -100
+            triX = -1000
+            triY = -1000
 
             console.log("Oh no! I'm hurt!")
         }
@@ -250,8 +250,8 @@ function updateCells(i) {
             speedX[i] += 0.1;
             speedY[i] += 0.1;
             mood += 20;
-            itemX = -100
-            itemY = -100
+            itemX = -1000
+            itemY = -1000
         }
     }
 }
