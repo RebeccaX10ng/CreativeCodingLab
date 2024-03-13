@@ -247,11 +247,13 @@ function updateCells(i) {
             console.log("Thank You For Your Love!")
             heartAmount++;
             // cellSize+=0.1;
-            speedX[i] += 0.1;
-            speedY[i] += 0.1;
-            mood += 20;
-            itemX = -1000
-            itemY = -1000
+            if (mood <= 300) {
+                speedX[i] += 0.1;
+                speedY[i] += 0.1;
+                mood += 20;
+                itemX = -1000
+                itemY = -1000
+            }
         }
     }
 }
