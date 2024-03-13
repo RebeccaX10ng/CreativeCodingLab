@@ -19,7 +19,7 @@ let heart;
 let fillcolor;
 let startTime;
 let lastHeartTime = 0;
-let heartInterval = 1000;
+let heartInterval = 500;
 let cellSplit = false;
 let happyEnding;
 let heartAmount = 0;
@@ -207,9 +207,9 @@ function cell(i) {
         arc(0, 20, 20, 20, -PI, 0)
     }
 
-    if (random(1) < 0.005) { //0.5%
-        velocityX = random(-1, 1) * 5;
-        velocityY = random(-1, 1) * 5;
+    if (random(1) < 0.02) { //0.5%
+        velocityX = random(-1, 1) * 3;
+        velocityY = random(-1, 1) * 3;
     }
 
 
@@ -249,7 +249,7 @@ function updateCells(i) {
             // cellSize+=0.1;
             speedX[i] += 0.1;
             speedY[i] += 0.1;
-            mood += 15;
+            mood += 25;
             itemX = -100
             itemY = -100
         }
