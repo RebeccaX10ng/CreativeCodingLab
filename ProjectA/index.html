@@ -22,6 +22,7 @@
         <div id="p5-canvas-container">
             <!-- <img src="canvas_placeholder.png" alt=""> -->
         </div>
+        <button onclick="refreshPage()">Restart</button>
 
         <div class="two-columns">
             <div class="left">
@@ -83,7 +84,11 @@
     <div id="footer" class="yellow">
         <p>A CCLab project made by Rebecca Xiong in 2024 Spring</p>
     </div>
-
+    <script>
+        function refreshPage() {
+            location.reload();
+        }
+    </script>
     <script src="cell.js"></script>
 
 

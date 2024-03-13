@@ -3,7 +3,7 @@ let startAngle = 0;
 let inc = 0.1;
 let offsetX = [];
 let offsetY = [];
-let positionX, positionY;
+let velocityX, velocityY;
 let speedX = [];
 let speedY = [];
 let itemX, itemY;
@@ -36,8 +36,8 @@ function setup() {
 
     offsetX.push(random(width));
     offsetY.push(random(height));
-    positionX = random(2);
-    positionY = random(2);
+    velocityX = random(2);
+    velocityY = random(2);
     itemX = -100;
     itemY = mouseY;
     //set obstacle positions
@@ -206,15 +206,22 @@ function cell(i) {
         noFill()
         arc(0, 20, 20, 20, -PI, 0)
     }
-    offsetX[i] += speedX[i] * positionX;
-    offsetY[i] += speedY[i] * positionY;
+
+    if (random(1) < 0.005) { //0.5%
+        velocityX = random(-1, 1) * 5;
+        velocityY = random(-1, 1) * 5;
+    }
+
+
+    offsetX[i] += speedX[i] * velocityX;
+    offsetY[i] += speedY[i] * velocityY;
 
     if (offsetX[i] < 0 || offsetX[i] > width) {
-        positionX *= -1;
+        velocityX *= -1;
 
     }
     if (offsetY[i] < 0 || offsetY[i] > height) {
-        positionY *= -1;
+        velocityY *= -1;
 
     }
     pop()
