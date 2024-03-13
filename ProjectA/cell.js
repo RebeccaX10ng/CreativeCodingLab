@@ -249,7 +249,7 @@ function updateCells(i) {
             // cellSize+=0.1;
             speedX[i] += 0.1;
             speedY[i] += 0.1;
-            mood += 25;
+            mood += 20;
             itemX = -100
             itemY = -100
         }
