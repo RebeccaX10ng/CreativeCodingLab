@@ -103,7 +103,11 @@ function draw() {
     text("Survive time:" + surviveTime + "seconds", 0, 50)
     if (mood >= 50 && surviveTime >= 60 && cellSplit == false) {
         // console.log(speedX)
-        offsetX.push(offsetX[0] - radius * cellSize * 2 - 10)
+        if (offsetX[0] - radius * cellSize * 2 - 10 >= 50) {
+            offsetX.push(offsetX[0] - radius * cellSize * 2 - 10)
+        } else {
+            offsetX.push(offsetX[0] + radius * cellSize * 2 - 10)
+        }
         offsetY.push(offsetY[0])
         speedX.push(speedX[0])
         speedY.push(speedY[0])
@@ -196,8 +200,8 @@ function cell(i) {
     ellipse(-10, -10, 6, 10)
     ellipse(10, -10, 6, 10)
     strokeWeight(5)
-    point(-10, -12)
-    point(10, -12)
+    point(-10, map(mouseY, 0, height, -12, -6))
+    point(10, map(mouseY, 0, height, -12, -6))
     if (mood >= 70 && millis() - lastHeartTime < 5000) {
         noFill();
         arc(0, 10, 30, 10, 0, PI)
