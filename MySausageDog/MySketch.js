@@ -15,7 +15,7 @@ let dancer;
 function setup() {
   // no adjustments in the setup function needed...
   let canvas = createCanvas(windowWidth, windowHeight);
-  canvas.parent("p5-canvas-container");
+  canvas.parent("p5-canvas-containers");
 
   // ...except to adjust the dancer's name on the next line:
   dancer = new RebeccaDancer(width / 2, height / 2);
@@ -47,10 +47,24 @@ class RebeccaDancer {
     this.springX = -30;
     this.springY = 0;
     this.mappedFreqSpring = 0;
+    this.ociAngle = -3.14;
+    this.ociRadiusX = 45;
+    this.ociRadiusY = 11;
+    this.ociCenter = 0;
+    this.ociDirection = 1;
+    this.ociOffsetX = 0;
+    this.ociOffsetY = 0;
+    this.tongueLength = 10;
+    this.tougueSpeed = 0.2;
   }
   update() {
     // update properties here to achieve
     // your dancer's desired moves and behaviour
+    this.ociOffsetX = cos(this.ociAngle) * this.ociRadiusX;
+    this.ociOffsetY = sin(this.ociAngle) * this.ociRadiusY;
+    this.ociAngle += 0.02 * this.ociDirection;
+
+
     if (this.headY < -60) {
       this.headYspeed = 1;
     }
@@ -58,30 +72,33 @@ class RebeccaDancer {
       this.headYspeed = -1;
     }
     this.headY += this.headYspeed;
-    this.rotateAngle += this.rotateSpeed
+    this.rotateAngle += this.rotateSpeed;
     if (this.rotateAngle >= 0.2) {
-      this.rotateSpeed = -0.01
+      this.rotateSpeed = -0.01;
     }
     if (this.rotateAngle <= -0.2) {
-      this.rotateSpeed = 0.01
+      this.rotateSpeed = 0.01;
     }
+    this.tongueLength += this.tougueSpeed;
+    if (this.tongueLength >= 13 || this.tongueLength <= 8) {
+      this.tougueSpeed = -this.tougueSpeed
+    }
+
   }
   display() {
-
-    // the push and pop, along with the translate 
+    // console.log(this.x + this.ociOffsetX - 7,this.ociOffsetY);
+    // the push and pop, along with the translate
     // places your whole dancer object at this.x and this.y.
     // you may change its position on line 19 to see the effect.
-
 
     // ******** //
     // ⬇️ draw your dancer from here ⬇️
     // push();
     push();
-    translate(this.x, this.y);
+    translate(this.x + this.ociOffsetX, this.y + this.ociOffsetY);
     stroke(99, 31, 0);
     strokeWeight(2);
     fill(99, 31, 0);
-
 
     // translate(this.x, this.y);
     scale(1, this.scaleIndex / 3);
@@ -100,16 +117,24 @@ class RebeccaDancer {
     }
     pop();
     push();
+
+    //console.log(this.ociOffsetX);
     //ears
     fill(117, 45, 0);
-    translate(this.x - 7, this.y - 5 + this.headY);
+    translate(
+      this.x + this.ociOffsetX - 7,
+      this.y + this.ociOffsetY - 5 + this.headY
+    );
     rotate(-PI / 4);
     ellipse(-25, -15, 50, 20);
     pop();
     push();
 
     fill(117, 45, 0);
-    translate(this.x + 20, this.y + 29 + this.headY);
+    translate(
+      this.x + this.ociOffsetX + 20,
+      this.y + this.ociOffsetY + 29 + this.headY
+    );
     rotate(PI / 4);
     ellipse(-25, -15, 50, 20);
     pop();
@@ -117,7 +142,7 @@ class RebeccaDancer {
     stroke(99, 31, 0);
     strokeWeight(2);
     fill(99, 31, 0);
-    translate(this.x, this.y + this.headY);
+    translate(this.x + this.ociOffsetX, this.y + this.ociOffsetY + this.headY);
     rect(-36, 10, 50, 30);
     arc(-11, 10, 50, 60, -PI, 0);
 
@@ -134,11 +159,11 @@ class RebeccaDancer {
     ellipse(-23, -3, 10, 12);
     ellipse(0, -3, 10, 12);
     fill(255);
-    circle(-23, -5, 5)
-    circle(-0, -5, 5)
+    circle(-23, -5, 5);
+    circle(-0, -5, 5);
     //mouth
     fill(255, 156, 156);
-    arc(-11, 20 - 3, 12, 35, 0, -PI);
+    arc(-11, 20 - 3, this.tongueLength, this.tongueLength * 3, 0, -PI);
     fill(99, 31, 0);
     stroke(0);
     arc(-17, 19 - 3, 12, 10, 0, -PI);
@@ -149,27 +174,31 @@ class RebeccaDancer {
     pop();
     push();
     //tail
-    push()
+    push();
     stroke(117, 45, 0);
-    translate(this.x + 20, this.y + 60)
-    rotate(this.rotateAngle)
+    translate(this.x + this.ociOffsetX + 20, this.y + this.ociOffsetY + 60);
+    rotate(this.rotateAngle);
 
-    noFill()
-    strokeWeight(10)
+    noFill();
+    strokeWeight(10);
 
-    arc(0, 0, 40, 20, 0, PI)
-    pop()
+    arc(0, 0, 40, 20, 0, PI);
+    pop();
     //lowerBody
-    translate(this.x, this.y);
+    translate(this.x + this.ociOffsetX, this.y + this.ociOffsetY);
     fill(117, 45, 0);
-    ellipse(-30, 80, 30, 15)
-    ellipse(8, 80, 30, 15)
+    ellipse(-30, 80, 30, 15);
+    ellipse(8, 80, 30, 15);
     fill(99, 31, 0);
     stroke(99, 31, 0);
     strokeWeight(2);
     fill(99, 31, 0);
     arc(-11, 45, 50, 80, 0, -PI);
-    this.drawReferenceShapes()
+
+    pop();
+    push();
+    translate(this.x, this.y);
+    this.drawReferenceShapes();
     pop();
 
     // ⬆️ draw your dancer above ⬆️
@@ -178,18 +207,12 @@ class RebeccaDancer {
     // the next function draws a SQUARE and CROSS
     // to indicate the approximate size and the center point
     // of your dancer.
-    // it is using "this" because this function, too, 
+    // it is using "this" because this function, too,
     // is a part if your Dancer object.
     // comment it out or delete it eventually.
-
-
-
-
-
   }
 
   drawReferenceShapes() {
-
     noFill();
     stroke(255, 0, 0);
     line(-5, 0, 5, 0);
@@ -198,11 +221,8 @@ class RebeccaDancer {
     rect(-100, -100, 200, 200);
     fill(255);
     stroke(0);
-
   }
 }
-
-
 
 /*
 GOAL:
