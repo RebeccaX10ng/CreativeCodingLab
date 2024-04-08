@@ -5,7 +5,7 @@ let penSize = 40;
 let textOffset = 40;
 let pointPos = [];
 function setup() {
-  createCanvas(800, 600);
+  createCanvas(windowWidth, windowHeight);
   for (let i = 0; i < NUM_OF_PARTICLES; i++) {
     particles[i] = new Particle(random(width), random(height));
   }
@@ -63,6 +63,8 @@ function draw() {
 
   if (mouseIsPressed) {
     if (mouseButton === LEFT) {
+      particles.push(new Particle(mouseX + textOffset, mouseY));
+      particles.push(new Particle(mouseX + textOffset, mouseY));
       particles.push(new Particle(mouseX + textOffset, mouseY));
     }
   }
