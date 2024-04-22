@@ -23,7 +23,7 @@ p {
   /* top: 100px;
   left: 300px;
   width: 80%; */
-  width: 768px;
+  /* width: 768px;
   position: absolute;
   left: 50%;
   height: 50%;
@@ -31,7 +31,10 @@ p {
   /* transform: translate(-25%, 0); */
   /* height: 30%;
   width: 30%; */
-  background-color: blue;
+  /* background-color: blue; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .title {
@@ -84,9 +87,9 @@ p {
   width: 60px;
   height: 40px;
   background-color: brown;
-  position: relative;
+  /* position: relative; */
   margin: auto;
-  margin-top: 48.5%;
+  /* margin-top: 48.5%; */
 }
 
 #wrapper {
@@ -98,9 +101,17 @@ p {
 #albumName {
   width: 300px;
   height: 30px;
-  position: absolute;
+  /* position: absolute;
   margin-top: 47%;
   margin-left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%); */
 
+}
+
+#inputBox {
+  margin: auto;
+}
+
+#captureButton {
+  margin: auto;
 }
