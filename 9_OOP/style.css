@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
@@ -6,3 +7,63 @@ html, body {
 canvas {
   display: block;
 }
+
+h1 {
+  font-family: 'Courier New', Courier, monospace;
+  text-align: center;
+}
+
+p {
+
+
+  font-family: 'Times New Roman',
+    Times,
+    serif;
+  text-align: center;
+}
+
+#mainFlexContainer {
+  background-color: blueviolet;
+  display: flex;
+  outline: 2px solid black;
+  width: 100%;
+  max-width: 1000px;
+  margin: auto;
+  /* flex-grow: 10; */
+  flex-direction: column;
+}
+
+#p5-canvas-container {
+  outline: 2px solid black;
+  /* margin: auto; */
+  /* position: fixed; */
+  /* margin-left: 1cm;
+  margin-top: 1cm; */
+}
+
+#mytextBox {
+  /* outline: 20px solid red; */
+  margin: 10px;
+}
+
+/* 
+@media (max-width: 800px) {
+
+  /* CSS rules */
+/* #mainFlexContainer {
+    flex-direction: column;
+    background-color: darkcyan;
+  }
+
+  .mytextBox1 {
+    order: 2
+  }
+
+  #p5-canvas-container {
+    order: 3
+  }
+
+  .mytextBox2 {
+    order: 1
+  } 
+}*/

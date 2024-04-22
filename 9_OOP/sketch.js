@@ -1,44 +1,23 @@
-let balls = [];
+let angle = 0;
+let angleDelta;
+let radius;
 
 function setup() {
-  let canvas = createCanvas(500, 400);
+  let canvas = createCanvas(400, 400);
   canvas.parent("p5-canvas-container");
-  background(220);
-
-  for (let i = 0; i < 100; i++) {
-    let x = width / 2;
-    let y = height / 2;
-    let dia = random(10, 50);
-    balls.push(new Ball(x, y, dia));
-  }
+  background(0);
+  frameRate(500)
+  radius = random(20);
+  angleDelta = random(1);
 }
 
 function draw() {
-  background(220);
 
-  for (let i = 0; i < balls.length; i++) {
-    let b = balls[i]; // each ball
-    b.move();
-    b.display();
-  }
-}
-//
+  let x = width / 2 + cos(angle) * radius;
+  let y = height / 2 + sin(angle) * radius;
+  stroke(random(255), random(200), map(angle, 0, 2 * PI, 0, 255));
+  point(x, y);
 
-class Ball {
-  constructor(startX, startY, startDia) {
-    this.x = startX;
-    this.y = startY;
-    this.xSpd = random(-3, 3);
-    this.ySpd = random(-3, 3);
-    this.dia = startDia;
-  }
-  move() {
-    this.x += this.xSpd;
-    this.y += this.ySpd;
-  }
-  display() {
-    push();
-    circle(this.x, this.y, this.dia);
-    pop();
-  }
+  angle += angleDelta;
+  radius += 0.01;
 }
