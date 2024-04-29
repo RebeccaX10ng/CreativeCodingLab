@@ -95,7 +95,6 @@ p {
 #wrapper {
   display: flex;
   flex-direction: column;
-
 }
 
 #albumName {
@@ -113,5 +112,17 @@ p {
 }
 
 #captureButton {
+  margin: auto;
+}
+
+#checkBoxAlbumName {
+  text-align: center;
+}
+
+#slideBar {
+  margin: auto;
+}
+
+#colorPicker {
   margin: auto;
 }
