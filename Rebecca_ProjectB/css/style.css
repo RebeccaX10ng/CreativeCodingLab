@@ -35,6 +35,7 @@ p {
   display: flex;
   justify-content: center;
   align-items: center;
+  /* margin-bottom: 1vw; */
 }
 
 .title {
@@ -76,6 +77,7 @@ p {
   }
 }
 
+
 #addMark {
   position: relative;
   text-align: center;
@@ -84,8 +86,12 @@ p {
 }
 
 #capture {
-  width: 60px;
-  height: 40px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  font-size: large;
+  width: 8vw;
+  height: 4vw;
+  margin-top: 1vw;
   background-color: brown;
   /* position: relative; */
   margin: auto;
@@ -95,6 +101,7 @@ p {
 #wrapper {
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
 #albumName {
@@ -125,4 +132,30 @@ p {
 
 #colorPicker {
   margin: auto;
+}
+
+/* Select A Template */
+.filterWrapper {
+  display: flex;
+  flex-direction: row;
+  width: 80vw;
+  margin: auto;
+  /* margin-left: 5%;
+  margin-right: 5%; */
+  margin-top: 2%;
+  /* column-gap: 2%;
+  row-gap: 2%; */
+  /* gap: 2vw 2vw; */
+  flex-wrap: wrap;
+  align-self: auto;
+  justify-content: center;
+}
+
+.filterBox {
+  background-color: blue;
+  min-width: 320px;
+  height: 320px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 20px;
 }

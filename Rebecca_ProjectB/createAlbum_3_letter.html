@@ -27,14 +27,32 @@
     <div id="inputBox">
       <input id="albumName" type="text" placeholder="Insert Your Album Name">
     </div>
-    <div id="captureButton"><button id="capture">Save!</button></div>
+    <div id="slideBar">
+      <label for="slider">Text Size</label>
+      <input type="range" id="slider" min="0.5" max="1.5" value="1" step="0.1">
+
+    </div>
+    <div id="checkBoxAlbumName">
+      <input type="checkbox" id="showName">
+      <label for="showName">Show Album Name on the Cover</label>
+    </div>
+    <div id="captureButton"><button id="capture" onclick="changeButtonText()">Save!</button></div>
   </div>
   <!-- <div class="newAlbum">
     <div id="addMark">+</div>
 
     <p><a href="https://editor.p5js.org/RebeccaX/sketches/3J97KUaA2">Create My Own Album! </a></p>
   </div> -->
-
+  <script>
+    function changeButtonText() {
+      var button = document.getElementById("capture");
+      if (button.innerHTML === "Save!") {
+        button.innerHTML = "Resume";
+      } else {
+        button.innerHTML = "Save!";
+      }
+    }
+  </script>
   <script src="js/album_3_letters.js"></script>
 </body>
 

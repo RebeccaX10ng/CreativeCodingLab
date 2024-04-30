@@ -14,6 +14,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sedan:ital@0;1&display=swap" rel="stylesheet">
+  <script src="/js/config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 </head>
 
 <body>
@@ -27,26 +32,39 @@
     <div id="inputBox">
       <input id="albumName" type="text" placeholder="Insert Your Album Name">
     </div>
-    <!-- <div id="colorPick">
-      <input type="color" id="body" name="body" value="#f6b73c" />
-      <label for="body">Filter Color</label>
-    </div> -->
+    <div id="checkBoxAlbumName">
+      <input type="checkbox" id="showName">
+      <label for="showName">Show Album Name on the Cover</label>
+    </div>
     <div id="colorPicker"> <label for="color-picker">Select a color:</label>
       <input id="color-picker" type="color">
       <label for="color-picker-background">Background color:</label>
       <input id="color-picker-background" type="color">
     </div>
-
-
-
-    <div id="captureButton"><button id="capture">Save!</button></div>
+    <div id="captureButton"><button id="capture" onclick="changeButtonText()">Save!</button></div>
   </div>
+  <!-- <div id="colorPick">
+      <input type="color" id="body" name="body" value="#f6b73c" />
+      <label for="body">Filter Color</label>
+    </div> -->
+
+
+
   <!-- <div class="newAlbum">
     <div id="addMark">+</div>
 
     <p><a href="https://editor.p5js.org/RebeccaX/sketches/3J97KUaA2">Create My Own Album! </a></p>
   </div> -->
-
+  <script>
+    function changeButtonText() {
+      var button = document.getElementById("capture");
+      if (button.innerHTML === "Save!") {
+        button.innerHTML = "Resume";
+      } else {
+        button.innerHTML = "Save!";
+      }
+    }
+  </script>
   <script src="js/album_1_dots.js"></script>
 </body>
 

@@ -1,8 +1,10 @@
 let cam;
 let img;
 let character;
-let textscale = 10;
+let textscale = 15;
 let albumName;
+let frozen;
+let parameter = 1;
 function setup() {
   let canvas = createCanvas(640, 640);
   canvas.parent("canvasContainer");
@@ -21,6 +23,8 @@ function setup() {
   albumName = new AlbumName();
 }
 
+slider = document.getElementById("slider");
+slider.addEventListener("input", updateVariable, false);
 
 function draw() {
   background(0);
@@ -28,8 +32,9 @@ function draw() {
   cam.loadPixels();
   img.loadPixels();
   // now we can access the cam.pixels and img.pixels arrays!
-  for (let y = 0; y < cam.height; y += textscale) {
-    for (let x = 0; x < cam.width; x += textscale * 0.5) {
+  textFont('Courier New');
+  for (let y = 0; y < cam.height; y += 12) {
+    for (let x = 0; x < cam.width; x += 10) {
       // access each pixel!
       let index = (x + y * cam.width) * 4;
 
@@ -55,9 +60,9 @@ function draw() {
 
       let mappedValue = map(meanValue, 0, 255, 0, 1);
       let mappedFloorValue = floor(mappedValue);
-      textSize(textscale * 0.9);
+      textSize(textscale * 0.9 * parameter);
       if (meanValue <= 60) {
-        character = "*";
+        character = ".";
       } else if (meanValue > 60 && meanValue <= 120) {
         character = "1";
       } else if (meanValue > 120 && meanValue <= 180) {
@@ -73,11 +78,34 @@ function draw() {
     }
   }
   img.updatePixels();
-  albumName.display();
-  albumName.update();
 
   // image(img, 0, 0);
+  if (checked) {
+    albumName.display();
+    albumName.update();
+  }
 }
+
+let checked = false;
+let albumCheckBox = document.getElementById('showName');
+albumCheckBox.addEventListener('change', function () {
+  checked = this.checked;
+});
+let button = document.getElementById('capture');
+button.addEventListener('click', function () {
+  if (frozen) {
+    loop();
+  } else {
+    noLoop();
+  }
+  frozen = !frozen;
+  saveCanvas("MyAlbum.png");
+});
+
+function updateVariable() {
+  parameter = slider.value;
+}
+
 class AlbumName {
   constructor() {
     this.bounceX = random(width);

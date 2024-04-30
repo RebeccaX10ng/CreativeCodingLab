@@ -1,8 +1,8 @@
 let img;
 let cam;
 let albumName;
-let button;
 
+let frozen;
 
 function setup() {
   let canvas = createCanvas(640, 640);
@@ -64,7 +64,17 @@ albumCheckBox.addEventListener('change', function () {
   checked = this.checked;
 });
 
+let button = document.getElementById('capture');
+button.addEventListener('click', function () {
+  if (frozen) {
+    loop();
+  } else {
+    saveCanvas("MyAlbum.png");
+    noLoop();
+  }
+  frozen = !frozen;
 
+});
 class AlbumName {
   constructor() {
     this.bounceX = random(width);

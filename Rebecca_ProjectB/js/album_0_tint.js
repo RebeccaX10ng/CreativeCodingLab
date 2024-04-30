@@ -8,9 +8,10 @@ let tintG;
 let tintB;
 let albumName;
 let button;
-
+let frozen;
+let checked = false;
 function setup() {
-  let canvas = createCanvas(768, 768);
+  let canvas = createCanvas(640, 640);
   canvas.parent("canvasContainer");
 
   vid = createCapture(VIDEO, { flipped: true });
@@ -20,12 +21,10 @@ function setup() {
   tintR = random(0.5, 1);
   tintG = random(0.5, 1);
   tintB = random(0.5, 1);
-
-  button = document.getElementById('capture');
-  button.addEventListener('click', function () {
-    saveCanvas("MyAlbum.png");
+  albumCheckBox = document.getElementById('showName');
+  albumCheckBox.addEventListener('change', function () {
+    checked = this.checked;
   });
-
   albumName = new AlbumName();
 }
 
@@ -45,16 +44,27 @@ function draw() {
     }
     push()
     stroke(0);
-    strokeWeight(180);
+    strokeWeight(160);
     noFill();
-    circle(width / 2, height / 2, 900);
+    circle(width / 2, height / 2, 780);
     pop();
   }
 
-  albumName.display();
-  albumName.update();
+  if (checked) {
+    albumName.display();
+    albumName.update();
+  }
 }
-
+button = document.getElementById('capture');
+button.addEventListener('click', function () {
+  if (frozen) {
+    loop();
+  } else {
+    noLoop();
+  }
+  frozen = !frozen;
+  saveCanvas("MyAlbum.png");
+});
 class AlbumName {
   constructor() {
     this.bounceX = random(width);
