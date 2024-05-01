@@ -20,6 +20,11 @@
   <h1 class="title">
     <span class="titleItalic">CREATE</span> <span class="titleNormal">A New Album</span>
   </h1>
+  <div id="return">
+    <a href="select_a_template.html">
+      Try Other Templates
+    </a>
+  </div>
   <div id="wrapper">
     <div id="canvasContainer">
       <!-- p5 canvas will be appended here! -->
@@ -30,6 +35,10 @@
     <div id="checkBoxAlbumName">
       <input type="checkbox" id="showName">
       <label for="showName">Show Album Name on the Cover</label>
+    </div>
+    <div id="checkBoxReverse">
+      <input type="checkbox" id="Reverse">
+      <label for="Reverse">Reverse the Ellipses</label>
     </div>
     <div id="captureButton"><button id="capture" onclick="changeButtonText()">Save!</button></div>
   </div>

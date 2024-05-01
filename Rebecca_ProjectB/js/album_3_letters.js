@@ -17,7 +17,13 @@ function setup() {
 
   button = document.getElementById('capture');
   button.addEventListener('click', function () {
-    saveCanvas("MyAlbum.png");
+    if (frozen) {
+      loop();
+    } else {
+      saveCanvas("MyAlbum.png");
+      noLoop();
+    }
+    frozen = !frozen;
   });
 
   albumName = new AlbumName();
@@ -34,7 +40,7 @@ function draw() {
   // now we can access the cam.pixels and img.pixels arrays!
   textFont('Courier New');
   for (let y = 0; y < cam.height; y += 12) {
-    for (let x = 0; x < cam.width; x += 10) {
+    for (let x = 0; x < cam.width; x += 8) {
       // access each pixel!
       let index = (x + y * cam.width) * 4;
 
@@ -65,11 +71,14 @@ function draw() {
         character = ".";
       } else if (meanValue > 60 && meanValue <= 120) {
         character = "1";
-      } else if (meanValue > 120 && meanValue <= 180) {
+      } else if (meanValue > 120 && meanValue <= 150) {
         character = "0";
+      } else if (meanValue > 150 && meanValue <= 255) {
+        character = "&";
       }
       text(character, 0, 0);
       pop()
+
       // }
       // fill(255, g, b, a);
       // noStroke();
@@ -77,6 +86,12 @@ function draw() {
 
     }
   }
+  push()
+  stroke(0);
+  strokeWeight(160);
+  noFill();
+  circle(width / 2, height / 2, 780);
+  pop();
   img.updatePixels();
 
   // image(img, 0, 0);
@@ -90,16 +105,6 @@ let checked = false;
 let albumCheckBox = document.getElementById('showName');
 albumCheckBox.addEventListener('change', function () {
   checked = this.checked;
-});
-let button = document.getElementById('capture');
-button.addEventListener('click', function () {
-  if (frozen) {
-    loop();
-  } else {
-    noLoop();
-  }
-  frozen = !frozen;
-  saveCanvas("MyAlbum.png");
 });
 
 function updateVariable() {

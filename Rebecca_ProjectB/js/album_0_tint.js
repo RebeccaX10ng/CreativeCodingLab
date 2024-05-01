@@ -42,28 +42,30 @@ function draw() {
       fill(r * tintR, g * tintG, b * tintB);
       ellipse(i * scl, j * scl, scl, scl);
     }
-    push()
-    stroke(0);
-    strokeWeight(160);
-    noFill();
-    circle(width / 2, height / 2, 780);
-    pop();
-  }
 
+  }
+  push()
+  stroke(0);
+  strokeWeight(160);
+  noFill();
+  circle(width / 2, height / 2, 780);
+  pop();
   if (checked) {
     albumName.display();
     albumName.update();
   }
 }
+
 button = document.getElementById('capture');
 button.addEventListener('click', function () {
   if (frozen) {
     loop();
   } else {
+    saveCanvas("MyAlbum.png");
     noLoop();
   }
   frozen = !frozen;
-  saveCanvas("MyAlbum.png");
+
 });
 class AlbumName {
   constructor() {

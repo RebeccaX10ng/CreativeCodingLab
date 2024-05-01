@@ -1,7 +1,7 @@
 let img;
 let cam;
 let albumName;
-
+let backgroundColor = 0;
 let frozen;
 
 function setup() {
@@ -18,7 +18,7 @@ function setup() {
 
 
 function draw() {
-  background(0);
+  background(backgroundColor);
 
   cam.loadPixels();
   img.loadPixels();
@@ -32,7 +32,7 @@ function draw() {
       let b = cam.pixels[index + 2];
 
       let avg = (r + g + b) / 3;
-      let imgtTreshold = 0.27;
+      let imgtTreshold = 0;
       if (avg > 255 * imgtTreshold) {
         img.pixels[index + 0] = r; // R
         img.pixels[index + 1] = g; // G
@@ -46,11 +46,23 @@ function draw() {
       }
       noStroke();
       fill(r, g, b);
-      ellipse(x, y, 20, map(avg, 0, 255, 0, 10));
+      if (reversed) {
+        ellipse(x, y, 20, 10 - map(avg, 0, 255, 0, 10));
+        backgroundColor = 0;
+      } else {
+        ellipse(x, y, 20, map(avg, 0, 255, 0, 10));
+        backgroundColor = 0;
+      }
+
     }
     // img.updatePixels();
   }
-
+  push()
+  stroke(0);
+  strokeWeight(160);
+  noFill();
+  circle(width / 2, height / 2, 780);
+  pop();
 
   if (checked) {
     albumName.display();
@@ -64,6 +76,11 @@ albumCheckBox.addEventListener('change', function () {
   checked = this.checked;
 });
 
+let reversed = false;
+let reverseCheckBox = document.getElementById('Reverse');
+reverseCheckBox.addEventListener('change', function () {
+  reversed = this.checked;
+})
 let button = document.getElementById('capture');
 button.addEventListener('click', function () {
   if (frozen) {

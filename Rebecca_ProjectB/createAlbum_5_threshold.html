@@ -20,6 +20,11 @@
   <h1 class="title">
     <span class="titleItalic">CREATE</span> <span class="titleNormal">A New Album</span>
   </h1>
+  <div id="return">
+    <a href="select_a_template.html">
+      Try Other Templates
+    </a>
+  </div>
   <div id="wrapper">
     <div id="canvasContainer">
       <!-- p5 canvas will be appended here! -->
@@ -40,15 +45,23 @@
       <input type="color" id="body" name="body" value="#f6b73c" />
       <label for="body">Filter Color</label>
     </div> -->
-    <div id="captureButton"><button id="capture">Save!</button></div>
-  </div>
-  <!-- <div class="newAlbum">
+    <div id="captureButton"><button id="capture" onclick="changeButtonText()">Save!</button></div>>
+    <!-- <div class="newAlbum">
     <div id="addMark">+</div>
 
     <p><a href="https://editor.p5js.org/RebeccaX/sketches/3J97KUaA2">Create My Own Album! </a></p>
   </div> -->
-
-  <script src="js/album_5_threshold.js"></script>
+    <script>
+      function changeButtonText() {
+        var button = document.getElementById("capture");
+        if (button.innerHTML === "Save!") {
+          button.innerHTML = "Resume";
+        } else {
+          button.innerHTML = "Save!";
+        }
+      }
+    </script>
+    <script src="js/album_5_threshold.js"></script>
 </body>
 
 </html>

@@ -3,6 +3,7 @@ let cam;
 let albumName;
 let button;
 let slider;
+let frozen;
 let parameter = 0.3;
 
 function setup() {
@@ -15,7 +16,16 @@ function setup() {
   cam.hide();
   img = createImage(768, 640); // blank image
   albumName = new AlbumName();
-
+  button = document.getElementById('capture');
+  button.addEventListener('click', function () {
+    if (frozen) {
+      loop();
+    } else {
+      saveCanvas("MyAlbum.png");
+      noLoop();
+    }
+    frozen = !frozen;
+  });
 }
 
 slider = document.getElementById("slider");
@@ -62,6 +72,12 @@ function draw() {
     albumName.display();
     albumName.update();
   }
+  push()
+  stroke(0);
+  strokeWeight(160);
+  noFill();
+  circle(width / 2, height / 2, 780);
+  pop();
 }
 
 let checked = false;

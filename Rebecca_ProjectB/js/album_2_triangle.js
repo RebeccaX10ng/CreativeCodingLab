@@ -83,13 +83,14 @@ function draw() {
 
     }
   }
-  img.updatePixels();
   push()
   stroke(0);
   strokeWeight(160);
   noFill();
   circle(width / 2, height / 2, 780);
   pop();
+  img.updatePixels();
+
   // image(img, 0, 0);
   if (checked) {
     albumName.display();

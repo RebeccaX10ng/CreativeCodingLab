@@ -62,7 +62,12 @@ function draw() {
     }
   }
   img.updatePixels();
-
+  push()
+  stroke(0);
+  strokeWeight(160);
+  noFill();
+  circle(width / 2, height / 2, 780);
+  pop();
   // image(img, 0, 0);
   if (checked) {
     albumName.display();
@@ -75,10 +80,11 @@ button.addEventListener('click', function () {
   if (frozen) {
     loop();
   } else {
+    saveCanvas("MyAlbum.png");
     noLoop();
   }
   frozen = !frozen;
-  saveCanvas("MyAlbum.png");
+
 });
 const colorPicker = document.getElementById("color-picker");
 colorPicker.addEventListener("input", function (event) {

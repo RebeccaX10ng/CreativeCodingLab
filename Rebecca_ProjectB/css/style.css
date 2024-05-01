@@ -1,7 +1,7 @@
 html,
 body {
   width: 100%;
-  background-color: aquamarine;
+  background-color: #96ffd2;
 }
 
 body,
@@ -42,7 +42,7 @@ p {
   text-align: center;
   width: 100%;
   /* position: fixed; */
-  background-color: aqua;
+  background-color: #88e3b3;
 
 
 }
@@ -88,9 +88,9 @@ p {
 #capture {
   font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
-  font-size: large;
-  width: 8vw;
-  height: 4vw;
+  font-size: 2.5vw;
+  width: 10vw;
+  height: 6vw;
   margin-top: 1vw;
   background-color: brown;
   /* position: relative; */
@@ -102,6 +102,7 @@ p {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-bottom: 10vw;
 }
 
 #albumName {
@@ -126,6 +127,10 @@ p {
   text-align: center;
 }
 
+#checkBoxReverse {
+  text-align: center;
+}
+
 #slideBar {
   margin: auto;
 }
@@ -142,20 +147,37 @@ p {
   margin: auto;
   /* margin-left: 5%;
   margin-right: 5%; */
-  margin-top: 2%;
+  /* margin-top: 2%; */
   /* column-gap: 2%;
   row-gap: 2%; */
   /* gap: 2vw 2vw; */
+  gap: 1vw 0.5vw;
   flex-wrap: wrap;
   align-self: auto;
   justify-content: center;
 }
 
 .filterBox {
-  background-color: blue;
+  background-color: #88e3b3;
   min-width: 320px;
+  max-width: 400px;
   height: 320px;
   margin-left: 10px;
   margin-right: 10px;
-  margin-top: 20px;
+  /* margin-top: 10px; */
+}
+
+#return {
+  font-family: 'Courier New', Courier, monospace;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  text-align: center;
+  font-size: 1.5vw;
+  width: 10vw;
+  height: 4vw;
+  margin: auto;
+  margin-top: 0.5vw;
+  margin-bottom: 0.5vw;
+  background-color: #88e3b3;
 }
