@@ -73,13 +73,13 @@ function draw() {
   noFill();
   circle(width / 2, height / 2, 780);
   pop();
-}
-if (checked) {
-  albumName.display();
-  albumName.update();
-}
 
+  if (checked) {
+    albumName.display();
+    albumName.update();
+  }
 
+}
 let checked = false;
 let albumCheckBox = document.getElementById('showName');
 albumCheckBox.addEventListener('change', function () {
