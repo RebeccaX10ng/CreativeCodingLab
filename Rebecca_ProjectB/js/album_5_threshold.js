@@ -67,11 +67,6 @@ function draw() {
 
   img.updatePixels();
   image(img, 0, 0);
-
-  if (checked) {
-    albumName.display();
-    albumName.update();
-  }
   push()
   stroke(0);
   strokeWeight(160);
@@ -79,6 +74,11 @@ function draw() {
   circle(width / 2, height / 2, 780);
   pop();
 }
+if (checked) {
+  albumName.display();
+  albumName.update();
+}
+
 
 let checked = false;
 let albumCheckBox = document.getElementById('showName');
