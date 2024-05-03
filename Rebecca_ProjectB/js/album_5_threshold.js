@@ -3,9 +3,13 @@ let cam;
 let albumName;
 let button;
 let slider;
-let frozen;
-let parameter = 0.3;
 
+let parameter = 0.3;
+//2024.5.3 Modified Version
+let frozenImage;
+let frozen = false;
+let rotationAngle = 0;
+let clickCount = 0;
 function setup() {
   let canvas = createCanvas(640, 640);
   canvas.parent("canvasContainer");
@@ -16,16 +20,16 @@ function setup() {
   cam.hide();
   img = createImage(768, 640); // blank image
   albumName = new AlbumName();
-  button = document.getElementById('capture');
-  button.addEventListener('click', function () {
-    if (frozen) {
-      loop();
-    } else {
-      saveCanvas("MyAlbum.png");
-      noLoop();
-    }
-    frozen = !frozen;
-  });
+  // button = document.getElementById('capture');
+  // button.addEventListener('click', function () {
+  //   if (frozen) {
+  //     loop();
+  //   } else {
+  //     saveCanvas("MyAlbum.png");
+  //     noLoop();
+  //   }
+  //   frozen = !frozen;
+  // });
 }
 
 slider = document.getElementById("slider");
@@ -79,6 +83,32 @@ function draw() {
     albumName.update();
   }
 
+  if (frozen) {
+    rotateCanvas();
+  }
+}
+
+button = document.getElementById('capture');
+button.addEventListener('click', function () {
+  clickCount++;
+  if (clickCount % 2 === 1) {
+    frozenImage = get();
+    frozen = true;
+    saveCanvas("MyAlbum.png");
+  }
+  else {
+
+    frozen = false;
+    rotationAngle = 0;
+  }
+
+});
+function rotateCanvas() {
+  translate(width / 2, height / 2);
+  rotate(rotationAngle);
+  background(0);
+  image(frozenImage, -width / 2, -height / 2);
+  rotationAngle += 0.01;
 }
 let checked = false;
 let albumCheckBox = document.getElementById('showName');

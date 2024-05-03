@@ -2,9 +2,13 @@ let cam;
 let img;
 let fillColor = "#000000";
 let fillColorBackground = "#FFFFFF";
-let frozen = false;
-let checked = false;
 
+let checked = false;
+//2024.5.3 Modified Version
+let frozenImage;
+let frozen = false;
+let rotationAngle = 0;
+let clickCount = 0;
 function setup() {
   let canvas = createCanvas(640, 640);
   canvas.parent("canvasContainer");
@@ -46,16 +50,16 @@ function draw() {
       img.pixels[index + 3] = 255;
 
       let meanValue = (r + g + b) / 3;
-      if (meanValue >= 0) {
-        fill(fillColor);
-        noStroke();
-        circle(x, y, 5 - map(meanValue, 0, 150, 0, 5))
+      // if (meanValue >= 0) {
+      fill(fillColor);
+      noStroke();
+      circle(x, y, 5 - map(meanValue, 0, 150, 0, 5))
 
-        // let mappedValue = map(meanValue, 0, 255, 0, 6);
-        // let mappedFloorValue = floor(mappedValue);
-        // textSize(5);
-        // text(mappedFloorValue, x, y);
-      }
+      // let mappedValue = map(meanValue, 0, 255, 0, 6);
+      // let mappedFloorValue = floor(mappedValue);
+      // textSize(5);
+      // text(mappedFloorValue, x, y);
+      // }
       // fill(255, g, b, a);
       // noStroke();
       // ellipse(x, y, 1);
@@ -73,19 +77,33 @@ function draw() {
     albumName.display();
     albumName.update();
   }
+  if (frozen) {
+    rotateCanvas();
+  }
 }
 
-let button = document.getElementById('capture');
+button = document.getElementById('capture');
 button.addEventListener('click', function () {
-  if (frozen) {
-    loop();
-  } else {
+  clickCount++;
+  if (clickCount % 2 === 1) {
+    frozenImage = get();
+    frozen = true;
     saveCanvas("MyAlbum.png");
-    noLoop();
   }
-  frozen = !frozen;
+  else {
+
+    frozen = false;
+    rotationAngle = 0;
+  }
 
 });
+function rotateCanvas() {
+  translate(width / 2, height / 2);
+  rotate(rotationAngle);
+  background(0);
+  image(frozenImage, -width / 2, -height / 2);
+  rotationAngle += 0.01;
+}
 const colorPicker = document.getElementById("color-picker");
 colorPicker.addEventListener("input", function (event) {
   fillColor = this.value;

@@ -8,8 +8,15 @@ let tintG;
 let tintB;
 let albumName;
 let button;
-let frozen;
+
 let checked = false;
+
+//2024.5.3 Modified Version
+let frozenImage;
+let frozen = false;
+let rotationAngle = 0;
+let clickCount = 0;
+
 function setup() {
   let canvas = createCanvas(640, 640);
   canvas.parent("canvasContainer");
@@ -54,19 +61,33 @@ function draw() {
     albumName.display();
     albumName.update();
   }
+  if (frozen) {
+    rotateCanvas();
+  }
 }
 
 button = document.getElementById('capture');
 button.addEventListener('click', function () {
-  if (frozen) {
-    loop();
-  } else {
+  clickCount++;
+  if (clickCount % 2 === 1) {
+    frozenImage = get();
+    frozen = true;
     saveCanvas("MyAlbum.png");
-    noLoop();
   }
-  frozen = !frozen;
+  else {
+
+    frozen = false;
+    rotationAngle = 0;
+  }
 
 });
+function rotateCanvas() {
+  translate(width / 2, height / 2);
+  rotate(rotationAngle);
+  background(0);
+  image(frozenImage, -width / 2, -height / 2);
+  rotationAngle += 0.01;
+}
 class AlbumName {
   constructor() {
     this.bounceX = random(width);

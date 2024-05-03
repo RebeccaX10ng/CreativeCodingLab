@@ -2,7 +2,11 @@ let img;
 let cam;
 let albumName;
 let backgroundColor = 0;
-let frozen;
+//2024.5.3 Modified Version
+let frozenImage;
+let frozen = false;
+let rotationAngle = 0;
+let clickCount = 0;
 
 function setup() {
   let canvas = createCanvas(640, 640);
@@ -68,6 +72,32 @@ function draw() {
     albumName.display();
     albumName.update();
   }
+  if (frozen) {
+    rotateCanvas();
+  }
+}
+
+button = document.getElementById('capture');
+button.addEventListener('click', function () {
+  clickCount++;
+  if (clickCount % 2 === 1) {
+    frozenImage = get();
+    frozen = true;
+    saveCanvas("MyAlbum.png");
+  }
+  else {
+
+    frozen = false;
+    rotationAngle = 0;
+  }
+
+});
+function rotateCanvas() {
+  translate(width / 2, height / 2);
+  rotate(rotationAngle);
+  background(0);
+  image(frozenImage, -width / 2, -height / 2);
+  rotationAngle += 0.01;
 }
 
 let checked = false;
@@ -81,17 +111,7 @@ let reverseCheckBox = document.getElementById('Reverse');
 reverseCheckBox.addEventListener('change', function () {
   reversed = this.checked;
 })
-let button = document.getElementById('capture');
-button.addEventListener('click', function () {
-  if (frozen) {
-    loop();
-  } else {
-    saveCanvas("MyAlbum.png");
-    noLoop();
-  }
-  frozen = !frozen;
 
-});
 class AlbumName {
   constructor() {
     this.bounceX = random(width);
