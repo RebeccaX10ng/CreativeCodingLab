@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Project</title>
+  <title>Create My Album</title>
   <link rel="stylesheet" href="css/style.css">
 
   <script src="js/lib/p5.js"></script>
@@ -40,7 +40,12 @@
       <input type="checkbox" id="Reverse">
       <label for="Reverse">Reverse the Ellipses</label>
     </div>
-    <div id="captureButton"><button id="capture" onclick="changeButtonText()">Save!</button></div>
+    <div id="captureButton">
+      <button id="capture" onclick="changeButtonText()" class="btns">Save!</button>
+      <button id="record" class="btns" onclick="startRecording()">Record Audio</button>
+      <button id="play" class="btns" onclick="playRecording()">Play Audio</button>
+      <button id="save" class="btns" onclick="saveAudioRecording()">Save Audio</button>
+    </div>
   </div>
   <!-- <div class="newAlbum">
     <div id="addMark">+</div>

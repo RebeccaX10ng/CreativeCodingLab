@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Project</title>
+  <title>Create My Album</title>
   <link rel="stylesheet" href="css/style.css">
 
   <script src="js/lib/p5.js"></script>
@@ -45,23 +45,29 @@
       <input type="color" id="body" name="body" value="#f6b73c" />
       <label for="body">Filter Color</label>
     </div> -->
-    <div id="captureButton"><button id="capture" onclick="changeButtonText()">Save!</button></div>>
-    <!-- <div class="newAlbum">
+    <div id="captureButton">
+      <button id="capture" onclick="changeButtonText()" class="btns">Save!</button>
+      <button id="record" class="btns" onclick="startRecording()">Record Audio</button>
+      <button id="play" class="btns" onclick="playRecording()">Play Audio</button>
+      <button id="save" class="btns" onclick="saveAudioRecording()">Save Audio</button>
+    </div>
+  </div>
+  <!-- <div class="newAlbum">
     <div id="addMark">+</div>
 
     <p><a href="https://editor.p5js.org/RebeccaX/sketches/3J97KUaA2">Create My Own Album! </a></p>
   </div> -->
-    <script>
-      function changeButtonText() {
-        var button = document.getElementById("capture");
-        if (button.innerHTML === "Save!") {
-          button.innerHTML = "Resume";
-        } else {
-          button.innerHTML = "Save!";
-        }
+  <script>
+    function changeButtonText() {
+      var button = document.getElementById("capture");
+      if (button.innerHTML === "Save!") {
+        button.innerHTML = "Resume";
+      } else {
+        button.innerHTML = "Save!";
       }
-    </script>
-    <script src="js/album_5_threshold.js"></script>
+    }
+  </script>
+  <script src="js/album_5_threshold.js"></script>
 </body>
 
 </html>

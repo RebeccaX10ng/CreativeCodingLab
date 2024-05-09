@@ -87,12 +87,53 @@ p {
   font-size: 80px;
 }
 
-#capture {
+.btns {
   font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
-  font-size: 2.5vw;
-  width: 10vw;
-  height: 6vw;
+  font-size: 0.8vw;
+  width: 5w;
+  height: 2vw;
+  margin-top: 1vw;
+  background-color: brown;
+  /* position: relative; */
+  margin: auto;
+  /* margin-top: 48.5%; */
+}
+
+
+#record {
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  font-size: 0.8vw;
+  width: 4vw;
+  height: 2vw;
+  margin-top: 1vw;
+  background-color: brown;
+  /* position: relative; */
+  margin: auto;
+  /* margin-top: 48.5%; */
+}
+
+#play {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  font-size: 0.8vw;
+  width: 4vw;
+  height: 2vw;
+  margin-top: 1vw;
+  background-color: brown;
+  /* position: relative; */
+  margin: auto;
+  /* margin-top: 48.5%; */
+}
+
+#save {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  font-size: 0.8vw;
+  width: 4vw;
+  height: 2vw;
   margin-top: 1vw;
   background-color: brown;
   /* position: relative; */
@@ -122,7 +163,12 @@ p {
 }
 
 #captureButton {
+  /* width: 80; */
   margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1vw;
 }
 
 #checkBoxAlbumName {

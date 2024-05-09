@@ -16,6 +16,14 @@ let frozenImage;
 let frozen = false;
 let rotationAngle = 0;
 let clickCount = 0;
+//2024.5.6 Modified Version
+let recordButton;
+let playButton;
+let saveButton;
+let mic;
+let recorder;
+let soundFile;
+let isRecording = false;
 
 function setup() {
   let canvas = createCanvas(640, 640);
@@ -25,6 +33,8 @@ function setup() {
   vid.hide();
   vid.size(w, h);
 
+  getAudioContext().suspend();
+
   tintR = random(0.5, 1);
   tintG = random(0.5, 1);
   tintB = random(0.5, 1);
@@ -33,6 +43,24 @@ function setup() {
     checked = this.checked;
   });
   albumName = new AlbumName();
+
+  //2024.5.6 Modified version
+  mic = new p5.AudioIn();
+  mic.start();
+
+  recorder = new p5.SoundRecorder();
+  recorder.setInput(mic);
+
+  soundFile = new p5.SoundFile();
+
+  // recordButton = document.getElementById('record');
+  // recordButton.addEventListener('click', startRecording);
+
+  // playButton = document.getElementById('play');
+  // playButton.addEventListener('click', playRecording);
+
+  // saveButton = document.getElementById('save');
+  // saveButton.addEventListener('click', saveAudioRecording);
 }
 
 function draw() {
@@ -81,6 +109,14 @@ button.addEventListener('click', function () {
   }
 
 });
+
+// recordButton=document.getElementById('record');
+// button.addEventListener(
+//   'click',function(){
+
+//   }
+// )
+
 function rotateCanvas() {
   translate(width / 2, height / 2);
   rotate(rotationAngle);
@@ -88,6 +124,7 @@ function rotateCanvas() {
   image(frozenImage, -width / 2, -height / 2);
   rotationAngle += 0.01;
 }
+
 class AlbumName {
   constructor() {
     this.bounceX = random(width);
@@ -132,4 +169,31 @@ class AlbumName {
       this.nameB = random(255);
     }
   }
+}
+
+function startRecording() {
+  if (!isRecording) {
+    isRecording = true;
+    userStartAudio();
+    console.log("start recording")
+    recorder.record(soundFile);
+  } else {
+    isRecording = false;
+    console.log("stop recording")
+    recorder.stop();
+  }
+}
+
+
+function playRecording() {
+  if (soundFile.isPlaying()) {
+    soundFile.stop();
+  } else {
+    soundFile.play();
+  }
+}
+
+
+function saveAudioRecording() {
+  saveSound(soundFile, 'myRecording.wav');
 }

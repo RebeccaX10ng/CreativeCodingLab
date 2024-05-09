@@ -10,6 +10,13 @@ let frozen = false;
 let rotationAngle = 0;
 let clickCount = 0;
 
+let recordButton;
+let playButton;
+let saveButton;
+let mic;
+let recorder;
+let soundFile;
+let isRecording = false;
 function setup() {
   let canvas = createCanvas(640, 640);
   canvas.parent("canvasContainer");
@@ -37,6 +44,14 @@ function setup() {
   });
 
   albumName = new AlbumName();
+  //2024.5.6 Modified version
+  mic = new p5.AudioIn();
+  mic.start();
+
+  recorder = new p5.SoundRecorder();
+  recorder.setInput(mic);
+
+  soundFile = new p5.SoundFile();
 }
 
 slider = document.getElementById("slider");
@@ -177,4 +192,30 @@ class AlbumName {
       this.nameB = random(255);
     }
   }
+}
+function startRecording() {
+  if (!isRecording) {
+    isRecording = true;
+    userStartAudio();
+    console.log("start recording")
+    recorder.record(soundFile);
+  } else {
+    isRecording = false;
+    console.log("stop recording")
+    recorder.stop();
+  }
+}
+
+
+function playRecording() {
+  if (soundFile.isPlaying()) {
+    soundFile.stop();
+  } else {
+    soundFile.play();
+  }
+}
+
+
+function saveAudioRecording() {
+  saveSound(soundFile, 'myRecording.wav');
 }
