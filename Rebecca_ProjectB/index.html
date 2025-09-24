@@ -17,10 +17,21 @@
   <!-- <script src="js/musicNotes.js"></script> -->
 </head>
 
-<body>
+<body class="no-vertical-scroll">
 
 
   </div>
+  <div id="sideMenuBtn">&#9776;</div>
+  <nav id="sideMenu" class="side-menu">
+    <div class="side-menu-categories">
+      <a href="#" class="side-menu-link">Public Gallery</a>
+      <a href="#" class="side-menu-link">My Collections</a>
+      <a href="select_a_template.html" class="side-menu-link">Create My Record</a>
+    </div>
+    <div class="side-menu-bottom">
+      <a href="#" class="side-menu-signin">Sign In</a>
+    </div>
+  </nav>
   <h1 class="title">
     <span class="titleItalic">DAYS</span> <span class="titleNormal">Records Archive</span>
   </h1>
@@ -39,6 +50,37 @@
   </a>
   <!-- <script src="js/script.js"></script> -->
   <script src="js/musicNotes.js"></script>
+  <script>
+    const menuBtn = document.getElementById('sideMenuBtn');
+    const sideMenu = document.getElementById('sideMenu');
+    menuBtn.onclick = () => {
+      sideMenu.classList.toggle('open');
+    };
+    document.addEventListener('click', (e) => {
+      if (!sideMenu.contains(e.target) && e.target !== menuBtn) {
+        sideMenu.classList.remove('open');
+      }
+    });
+  </script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
+      authDomain: "days-records.firebaseapp.com",
+      projectId: "days-records",
+      storageBucket: "days-records.firebasestorage.app",
+      messagingSenderId: "454621890868",
+      appId: "1:454621890868:web:9095c79739212ca4e3bd61",
+      measurementId: "G-7ZKGPTRHPP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    console.log("Firebase initialized:", app);
+  </script>
 </body>
 
 </html>

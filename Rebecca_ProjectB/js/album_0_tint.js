@@ -94,21 +94,27 @@ function draw() {
   }
 }
 
-button = document.getElementById('capture');
-button.addEventListener('click', function () {
+function toggleFreeze() {
   clickCount++;
+  const button = document.getElementById("capture");
   if (clickCount % 2 === 1) {
-    frozenImage = get();
+    frozenImage = get(); // 从画布获取图像并存入全局变量 frozenImage
     frozen = true;
-    saveCanvas("MyAlbum.png");
-  }
-  else {
-
+    button.innerHTML = "Resume";
+  } else {
     frozen = false;
     rotationAngle = 0;
+    button.innerHTML = "Freeze Image";
   }
+}
 
-});
+function saveLocalImage() {
+  if (frozenImage) {
+    save(frozenImage, "MyAlbum.png"); // 使用 p5.js 的 save() 函数保存 frozenImage
+  } else {
+    alert("Please freeze an image first!");
+  }
+}
 
 // recordButton=document.getElementById('record');
 // button.addEventListener(
@@ -171,19 +177,52 @@ class AlbumName {
   }
 }
 
+// album_0_tint.js
+
+/**
+ * 启动或停止录音的函数。
+ * 包含了防止快速点击和录音启动时序问题的修复。
+ */
 function startRecording() {
+  // 确保音频环境已由用户激活
+  userStartAudio();
+
+  const recordButton = document.getElementById('record');
+
+  // 检查当前是否正在录音
   if (!isRecording) {
-    isRecording = true;
-    userStartAudio();
-    console.log("start recording")
-    recorder.record(soundFile);
+    // ---- 开始录音的逻辑 ----
+
+    // 1. 禁用按钮，防止用户立即再次点击
+    recordButton.disabled = true;
+    recordButton.innerHTML = "Starting..."; // 提示用户状态
+
+    // 2. 设置一个短暂的延迟 (100毫秒)
+    //    这给予麦克风音频流足够的时间来准备，防止 'Cannot read properties of undefined' 错误
+    setTimeout(() => {
+      // 3. 在延迟后，正式开始录音
+      recorder.record(soundFile);
+      isRecording = true;
+      console.log("Recording has started.");
+
+      // 4. 更新按钮文本，并在一小段时间后（例如1秒）重新启用按钮
+      //    这可以防止用户创建长度过短（或为零）的音频文件
+      recordButton.innerHTML = "Stop Recording";
+      setTimeout(() => {
+        recordButton.disabled = false;
+      }, 900); // 900毫秒 + 上面的100毫秒延迟 = 总共1秒后按钮可用
+
+    }, 100);
+
   } else {
-    isRecording = false;
-    console.log("stop recording")
+    // ---- 停止录音的逻辑 ----
+
     recorder.stop();
+    isRecording = false;
+    recordButton.innerHTML = "Record Audio";
+    console.log("Recording has stopped.");
   }
 }
-
 
 function playRecording() {
   if (soundFile.isPlaying()) {

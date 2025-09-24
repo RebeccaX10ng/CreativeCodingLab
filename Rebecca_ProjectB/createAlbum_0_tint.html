@@ -15,9 +15,37 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sedan:ital@0;1&display=swap" rel="stylesheet">
+  <!-- firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-storage-compat.js"></script>
 </head>
 
 <body>
+  <div id="sideMenuBtn">&#9776;</div>
+  <nav id="sideMenu" class="side-menu">
+    <div class="side-menu-categories">
+      <a href="#" class="side-menu-link">Public Gallery</a>
+      <a href="#" class="side-menu-link">My Collections</a>
+      <a href="select_a_template.html" class="side-menu-link">Create My Record</a>
+    </div>
+    <div class="side-menu-bottom">
+      <a href="#" class="side-menu-signin">Sign In</a>
+    </div>
+  </nav>
+  <script>
+    const menuBtn = document.getElementById('sideMenuBtn');
+    const sideMenu = document.getElementById('sideMenu');
+    menuBtn.onclick = () => {
+      sideMenu.classList.toggle('open');
+    };
+    document.addEventListener('click', (e) => {
+      if (!sideMenu.contains(e.target) && e.target !== menuBtn) {
+        sideMenu.classList.remove('open');
+      }
+    });
+  </script>
+
   <h1 class="title">
     <span class="titleItalic">CREATE</span> <span class="titleNormal">A New Album</span>
   </h1>
@@ -47,19 +75,18 @@
     <input id="color-picker-background" type="color">
   </div> -->
     <div id="captureButton">
-      <button id="capture" onclick="changeButtonText()" class="btns">Save!</button>
+      <button id="capture" onclick="toggleFreeze()" class="btns">Freeze Image</button>
+      <button id="saveImage" onclick="saveLocalImage()" class="btns">Save Image</button>
       <button id="record" class="btns" onclick="startRecording()">Record Audio</button>
       <button id="play" class="btns" onclick="playRecording()">Play Audio</button>
-      <button id="save" class="btns" onclick="saveAudioRecording()">Save Audio</button>
+      <button id="saveAudio" class="btns" onclick="saveAudioRecording()">Save Audio</button>
+
+      <button id="share" class="btns" onclick="uploadAndShare()">Share</button>
     </div>
 
+    <div id="shareLinkContainer" style="text-align: center; margin-top: 1em; word-wrap: break-word;"></div>
   </div>
 
-  <!-- <div class="newAlbum">
-    <div id="addMark">+</div>
-
-    <p><a href="https://editor.p5js.org/RebeccaX/sketches/3J97KUaA2">Create My Own Album! </a></p>
-  </div> -->
   <script>
     function changeButtonText() {
       var button = document.getElementById("capture");
@@ -72,6 +99,112 @@
   </script>
 
   <script src="js/album_0_tint.js"></script>
+
+  <script>
+    // 替换成您自己的 Firebase 项目配置
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
+      authDomain: "days-records.firebaseapp.com",
+      projectId: "days-records",
+      storageBucket: "days-records.firebasestorage.app",
+      messagingSenderId: "454621890868",
+      appId: "1:454621890868:web:9095c79739212ca4e3bd61",
+      measurementId: "G-7ZKGPTRHPP"
+    };
+
+    // 初始化 Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    // 定义一个处理上传和分享的函数
+    // 这个函数位于 createAlbum_0_tint.html 文件底部的 <script> 块中
+
+    // 这个函数位于 createAlbum_0_tint.html 文件底部的 <script> 块中
+
+    async function uploadAndShare() {
+      // 1. 检查是否已冻结图片，这是必须的
+      if (!frozenImage) {
+        alert('Please freeze an image before sharing!');
+        return;
+      }
+
+      const shareButton = document.getElementById('share');
+      shareButton.disabled = true;
+      shareButton.textContent = 'Uploading...';
+
+      // 初始化变量
+      let imageBlob = null;
+      let audioBlob = null;
+      let imageUrl = null;
+      let audioUrl = null; // 默认为 null
+
+      // 2. 获取 Canvas 图像数据 (Blob格式)
+      try {
+        imageBlob = await new Promise(resolve => frozenImage.canvas.toBlob(resolve, 'image/png'));
+      } catch (error) {
+        console.error("Error getting image data:", error);
+        alert("Could not get image data. Sharing failed.");
+        shareButton.disabled = false;
+        shareButton.textContent = 'Share';
+        return;
+      }
+
+      // 3. 【新】尝试获取音频数据
+      try {
+        // 只有在 soundFile 存在并且已加载时才尝试获取
+        if (soundFile && soundFile.isLoaded() && soundFile.duration() > 0) {
+          audioBlob = soundFile.getBlob();
+        } else {
+          console.log("No valid audio recorded. Sharing image only.");
+        }
+      } catch (e) {
+        console.warn("Could not get audio blob, possibly due to recording error. Sharing image only.", e);
+        audioBlob = null; // 确保 audioBlob 是 null
+      }
+
+      // 4. 开始上传流程
+      const uniqueId = Date.now();
+      const imagePath = `creations/${uniqueId}/album.png`;
+      const audioPath = `creations/${uniqueId}/recording.wav`;
+
+      try {
+        // 5. 上传图片 (必须)
+        const imageRef = storage.ref(imagePath);
+        await imageRef.put(imageBlob);
+        imageUrl = await imageRef.getDownloadURL();
+
+        // 6. 如果有音频数据，则上传音频
+        if (audioBlob) {
+          const audioRef = storage.ref(audioPath);
+          await audioRef.put(audioBlob);
+          audioUrl = await audioRef.getDownloadURL();
+        }
+
+        // 7. 将链接保存到 Firestore (audioUrl 可能是 null)
+        const creationRef = await db.collection("creations").add({
+          imageUrl: imageUrl,
+          audioUrl: audioUrl, // 保存 imageUrl 和 audioUrl (可能为null)
+          albumName: document.getElementById("albumName").value || "Untitled Album",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 8. 生成并显示分享链接
+        const shareLink = `${window.location.origin}/share.html?id=${creationRef.id}`;
+        document.getElementById('shareLinkContainer').innerHTML =
+          `Share this link: <a href="${shareLink}" target="_blank">${shareLink}</a>`;
+
+        shareButton.textContent = 'Shared!';
+        alert('Success! Your creation is ready to be shared.');
+
+      } catch (error) {
+        console.error("Upload failed:", error);
+        alert('Upload failed. Please check the console for details.');
+        shareButton.disabled = false;
+        shareButton.textContent = 'Share';
+      }
+    }
+  </script>
 </body>
 
 </html>

@@ -13,6 +13,29 @@
 </head>
 
 <body>
+    <div id="sideMenuBtn">&#9776;</div>
+    <nav id="sideMenu" class="side-menu">
+        <div class="side-menu-categories">
+            <a href="#" class="side-menu-link">Public Gallery</a>
+            <a href="#" class="side-menu-link">My Collections</a>
+            <a href="select_a_template.html" class="side-menu-link">Create My Record</a>
+        </div>
+        <div class="side-menu-bottom">
+            <a href="#" class="side-menu-signin">Sign In</a>
+        </div>
+    </nav>
+    <script>
+        const menuBtn = document.getElementById('sideMenuBtn');
+        const sideMenu = document.getElementById('sideMenu');
+        menuBtn.onclick = () => {
+            sideMenu.classList.toggle('open');
+        };
+        document.addEventListener('click', (e) => {
+            if (!sideMenu.contains(e.target) && e.target !== menuBtn) {
+                sideMenu.classList.remove('open');
+            }
+        });
+    </script>
     <h1 class="title">
         <span class="titleItalic">SELECT</span> <span class="titleNormal">A Template</span>
     </h1>

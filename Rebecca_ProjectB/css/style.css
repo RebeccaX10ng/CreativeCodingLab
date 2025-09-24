@@ -1,7 +1,20 @@
 html,
 body {
   width: 100%;
+  height: 100%;
   background-color: #96ffd2;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.no-vertical-scroll {
+  overflow-y: hidden !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
 }
 
 body,
@@ -43,7 +56,7 @@ p {
   width: 100%;
   /* position: fixed; */
   background-color: #88e3b3;
-
+  height: 1.1em;
 
 }
 
@@ -236,5 +249,89 @@ p {
   width: 12vw;
   height: 6vw;
   background-color: #477e60;
+}
 
+#sideMenuBtn {
+  position: fixed;
+  top: .1em;
+  left: .2em;
+  font-size: 1.2em;
+  font-family: 'Sedan', serif;
+  cursor: pointer;
+  z-index: 1001;
+  background: #88e3b3;
+  border-radius: 0.3em;
+  padding: 0.2em 0.4em;
+}
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: -13.75em;
+  width: 12.5em;
+  height: 100%;
+  background: #88e3b3;
+  /* box-shadow: 0.125em 0 0.5em rgba(0, 0, 0, 0.1); */
+  padding-top: 0.7em;
+  transition: left 0.3s;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.side-menu.open {
+  left: 0;
+}
+
+.side-menu-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin-top: 1.5em;
+}
+
+.side-menu-link {
+  padding: 1em 1.5em;
+  text-decoration: none;
+  color: #333;
+  font-size: 1.1em;
+  transition: background 0.2s;
+}
+
+.side-menu-link:hover {
+  background: #e0e0e0;
+}
+
+.side-menu-bottom {
+  margin-bottom: 5em;
+  display: flex;
+  justify-content: center;
+}
+
+.side-menu-signin {
+  padding: 0.7em 2em;
+  text-decoration: none;
+  color: #fff;
+  background: #477e60;
+  border-radius: 1.5em;
+  font-size: 1em;
+  font-family: 'Sedan', serif;
+  transition: background 0.2s;
+}
+
+.side-menu-signin:hover {
+  background: #2d4d3a;
+}
+
+.side-menu a {
+  padding: 1em 1.5em;
+  text-decoration: none;
+  color: #333;
+  font-size: 1.1em;
+  transition: background 0.2s;
+}
+
+.side-menu a:hover {
+  background: #477e60;
 }

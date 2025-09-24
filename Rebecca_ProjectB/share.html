@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Creation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* 为分享页添加一些简单样式 */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #creationContainer {
+            text-align: center;
+        }
+
+        img {
+            max-width: 90%;
+            max-height: 60vh;
+            border: 5px solid white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            margin-top: 1em;
+            color: #333;
+        }
+
+        audio {
+            margin-top: 1em;
+            width: 80%;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <div id="creationContainer">
+        <h2 id="albumTitle">Loading...</h2>
+        <img id="albumImage" src="" alt="Album Art">
+        <audio id="albumAudio" controls></audio>
+    </div>
+
+    <script>
+        // 替换成您自己的 Firebase 项目配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
+            authDomain: "days-records.firebaseapp.com",
+            projectId: "days-records",
+            storageBucket: "days-records.firebasestorage.app",
+            messagingSenderId: "454621890868",
+            appId: "1:454621890868:web:9095c79739212ca4e3bd61",
+            measurementId: "G-7ZKGPTRHPP"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 页面加载时执行
+        window.onload = async () => {
+            const titleElement = document.getElementById('albumTitle');
+            const imageElement = document.getElementById('albumImage');
+            const audioElement = document.getElementById('albumAudio');
+
+            // 1. 从URL获取文档ID
+            const params = new URLSearchParams(window.location.search);
+            const creationId = params.get('id');
+
+            if (!creationId) {
+                titleElement.textContent = "Creation not found.";
+                return;
+            }
+
+            try {
+                // 2. 从 Firestore 获取文档数据
+                const docRef = db.collection("creations").doc(creationId);
+                const docSnap = await docRef.get();
+
+                if (docSnap.exists) {
+                    const data = docSnap.data();
+                    // 3. 将数据填充到页面元素中
+                    titleElement.textContent = data.albumName;
+                    imageElement.src = data.imageUrl;
+                    audioElement.src = data.audioUrl;
+                } else {
+                    titleElement.textContent = "This creation does not exist.";
+                }
+            } catch (error) {
+                console.error("Error fetching creation:", error);
+                titleElement.textContent = "Error loading creation.";
+            }
+        };
+    </script>
+</body>
+
+</html>
