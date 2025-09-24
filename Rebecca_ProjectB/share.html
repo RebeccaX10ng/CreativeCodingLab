@@ -7,7 +7,6 @@
     <title>View Creation</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* 为分享页添加一些简单样式 */
         body {
             display: flex;
             flex-direction: column;
@@ -49,7 +48,6 @@
     </div>
 
     <script>
-        // 替换成您自己的 Firebase 项目配置
         const firebaseConfig = {
             apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
             authDomain: "days-records.firebaseapp.com",
@@ -62,13 +60,11 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 页面加载时执行
         window.onload = async () => {
             const titleElement = document.getElementById('albumTitle');
             const imageElement = document.getElementById('albumImage');
             const audioElement = document.getElementById('albumAudio');
 
-            // 1. 从URL获取文档ID
             const params = new URLSearchParams(window.location.search);
             const creationId = params.get('id');
 
@@ -78,13 +74,11 @@
             }
 
             try {
-                // 2. 从 Firestore 获取文档数据
                 const docRef = db.collection("creations").doc(creationId);
                 const docSnap = await docRef.get();
 
                 if (docSnap.exists) {
                     const data = docSnap.data();
-                    // 3. 将数据填充到页面元素中
                     titleElement.textContent = data.albumName;
                     imageElement.src = data.imageUrl;
                     audioElement.src = data.audioUrl;

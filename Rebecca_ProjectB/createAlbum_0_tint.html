@@ -190,7 +190,15 @@
         });
 
         // 8. 生成并显示分享链接
-        const shareLink = `${window.location.origin}/share.html?id=${creationRef.id}`;
+        // 7. 动态生成并显示分享链接
+        // 获取当前页面的完整路径
+        let currentURL = window.location.href;
+        // 找到最后一个'/'，并截取之前的所有部分作为基础URL
+        let baseURL = currentURL.substring(0, currentURL.lastIndexOf('/') + 1);
+
+        // 组合成最终的分享链接
+        const shareLink = `${baseURL}share.html?id=${creationRef.id}`;
+
         document.getElementById('shareLinkContainer').innerHTML =
           `Share this link: <a href="${shareLink}" target="_blank">${shareLink}</a>`;
 
