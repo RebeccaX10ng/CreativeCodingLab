@@ -25,10 +25,10 @@
   <nav id="sideMenu" class="side-menu">
     <div class="side-menu-categories">
       <a href="#" class="side-menu-link">Public Gallery</a>
-      <a href="#" class="side-menu-link">My Collections</a>
+      <a href="#" id="myCollectionsLink" class="side-menu-link">My Collections</a>
       <a href="select_a_template.html" class="side-menu-link">Create My Record</a>
     </div>
-    <div class="side-menu-bottom">
+    <div id="authContainer" class="side-menu-bottom">
       <a href="#" class="side-menu-signin">Sign In</a>
     </div>
   </nav>
@@ -62,10 +62,14 @@
       }
     });
   </script>
+
   <script type="module">
+    // 1. 从 SDK 导入所有需要的功能
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
+    // 2. 您的项目配置
     const firebaseConfig = {
       apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
       authDomain: "days-records.firebaseapp.com",
@@ -76,10 +80,46 @@
       measurementId: "G-7ZKGPTRHPP"
     };
 
+    // 3. 【【【 只在这里初始化一次 App 】】】
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
 
-    console.log("Firebase initialized:", app);
+    // 4. 从这一个 app 实例初始化所有需要的服务
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+
+    // 5. 监听用户登录状态变化
+    onAuthStateChanged(auth, (user) => {
+      const authContainer = document.getElementById('authContainer');
+      const myCollectionsLink = document.getElementById('myCollectionsLink');
+
+      if (user) {
+        // 用户已登录
+        authContainer.innerHTML = `
+        <div class="side-menu-user">
+          <p>Welcome, ${user.displayName.split(' ')[0]}!</p>
+          <a href="#" id="signOutBtn" class="side-menu-signin">Sign Out</a>
+        </div>
+      `;
+        document.getElementById('signOutBtn').addEventListener('click', (e) => {
+          e.preventDefault();
+          signOut(auth);
+        });
+        myCollectionsLink.href = 'my-creations.html';
+      } else {
+        // 用户未登录
+        authContainer.innerHTML = `
+        <a href="#" id="signInBtn" class="side-menu-signin">Sign In</a>
+      `;
+        document.getElementById('signInBtn').addEventListener('click', (e) => {
+          e.preventDefault();
+          const provider = new GoogleAuthProvider();
+          signInWithPopup(auth, provider).catch(error => console.error(error));
+        });
+        myCollectionsLink.href = '#';
+      }
+    });
+
+    console.log("Firebase initialized successfully (once):", app);
   </script>
 </body>
 

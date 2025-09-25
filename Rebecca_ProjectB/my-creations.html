@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Creations</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* 为这个页面添加一些简单样式 */
+        #galleryContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1em;
+            padding: 1em;
+            justify-content: center;
+        }
+
+        .gallery-item {
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .gallery-item img {
+            display: block;
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .gallery-item a {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #loadingMessage,
+        #loginMessage {
+            text-align: center;
+            font-size: 1.5em;
+            padding: 2em;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <h1>My Creations</h1>
+    <p id="loadingMessage">Loading your creations...</p>
+    <p id="loginMessage" style="display: none;">Please log in to see your creations.</p>
+    <div id="galleryContainer"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
+            authDomain: "days-records.firebaseapp.com",
+            projectId: "days-records",
+            storageBucket: "days-records.firebasestorage.app",
+            messagingSenderId: "454621890868",
+            appId: "1:454621890868:web:9095c79739212ca4e3bd61",
+            measurementId: "G-7ZKGPTRHPP"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        auth.onAuthStateChanged(async (user) => {
+            const galleryContainer = document.getElementById('galleryContainer');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const loginMessage = document.getElementById('loginMessage');
+
+            if (user) {
+                // 用户已登录，查询属于他的作品
+                loginMessage.style.display = 'none';
+                loadingMessage.style.display = 'block';
+                galleryContainer.innerHTML = ''; // 清空旧内容
+
+                try {
+                    const querySnapshot = await db.collection("creations")
+                        .where("userId", "==", user.uid) // 【【【 核心查询 】】】
+                        .orderBy("createdAt", "desc") // 按创建时间倒序排列
+                        .get();
+
+                    loadingMessage.style.display = 'none';
+
+                    if (querySnapshot.empty) {
+                        galleryContainer.innerHTML = "<p>You haven't created anything yet!</p>";
+                    }
+
+                    querySnapshot.forEach((doc) => {
+                        const creation = doc.data();
+                        const shareLink = `share.html?id=${doc.id}`;
+
+                        // 为每个作品创建卡片
+                        const item = document.createElement('div');
+                        item.className = 'gallery-item';
+                        item.innerHTML = `
+              <a href="${shareLink}" target="_blank">
+                <img src="${creation.imageUrl}" alt="${creation.albumName}">
+              </a>
+              <p>${creation.albumName}</p>
+              <a href="${shareLink}" target="_blank">View</a>
+            `;
+                        galleryContainer.appendChild(item);
+                    });
+
+                } catch (error) {
+                    console.error("Error fetching creations:", error);
+                    loadingMessage.textContent = "Could not load creations.";
+                }
+            } else {
+                // 用户未登录
+                loadingMessage.style.display = 'none';
+                loginMessage.style.display = 'block';
+                galleryContainer.innerHTML = '';
+            }
+        });
+    </script>
+</body>
+
+</html>

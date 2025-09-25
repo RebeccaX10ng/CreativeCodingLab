@@ -10,7 +10,7 @@
 
   <script src="js/lib/p5.js"></script>
   <script src="js/lib/p5.sound.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.1/addons/p5.sound.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.1/addons/p5.sound.min.js"></script> -->
   <!-- //embed a font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +19,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
 </head>
 
 <body>
@@ -26,10 +27,10 @@
   <nav id="sideMenu" class="side-menu">
     <div class="side-menu-categories">
       <a href="#" class="side-menu-link">Public Gallery</a>
-      <a href="#" class="side-menu-link">My Collections</a>
+      <a href="my-creations.html" id="myCollectionsLink" class="side-menu-link">My Collections</a>
       <a href="select_a_template.html" class="side-menu-link">Create My Record</a>
     </div>
-    <div class="side-menu-bottom">
+    <div id="authContainer" class="side-menu-bottom">
       <a href="#" class="side-menu-signin">Sign In</a>
     </div>
   </nav>
@@ -116,93 +117,98 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const storage = firebase.storage();
+    const auth = firebase.auth(); // 【【【 添加这一行代码！ 】】】
+
+    //Upload and share
+    // createAlbum_0_tint.html 的最后一个 <script> 标签内
+
+    // ... Firebase 初始化代码之后 ...
 
     //Upload and share
     async function uploadAndShare() {
-      // 1. check frozen image exists
-      if (!frozenImage) {
-        alert('Please freeze an image before sharing!');
-        return;
-      }
-
-      const shareButton = document.getElementById('share');
-      shareButton.disabled = true;
-      shareButton.textContent = 'Uploading...';
-
-      // initialize variables
-      let imageBlob = null;
-      let audioBlob = null;
-      let imageUrl = null;
-      let audioUrl = null;
-
-      // 2. canvas in blob format
       try {
-        imageBlob = await new Promise(resolve => frozenImage.canvas.toBlob(resolve, 'image/png'));
-      } catch (error) {
-        console.error("Error getting image data:", error);
-        alert("Could not get image data. Sharing failed.");
-        shareButton.disabled = false;
-        shareButton.textContent = 'Share';
-        return;
-      }
-
-      // 3.get audio data in blob format (if exists)
-      try {
-        // try to get if it exists
-        if (soundFile && soundFile.isLoaded() && soundFile.duration() > 0) {
-          audioBlob = soundFile.getBlob();
+        const user = auth.currentUser;
+        if (user) {
+          console.log("Sharing as logged-in user:", user.uid);
         } else {
-          console.log("No valid audio recorded. Sharing image only.");
+          console.log("Sharing as an anonymous user.");
         }
-      } catch (e) {
-        console.warn("Could not get audio blob, possibly due to recording error. Sharing image only.", e);
-        audioBlob = null; // make sure it's null if error
-      }
 
-      // 4. start uploading
-      const uniqueId = Date.now();
-      const imagePath = `creations/${uniqueId}/album.png`;
-      const audioPath = `creations/${uniqueId}/recording.wav`;
+        if (!frozenImage) {
+          alert('Please freeze an image before sharing!');
+          return;
+        }
 
-      try {
-        // 5. upload image
+        const shareButton = document.getElementById('share');
+        shareButton.disabled = true;
+        shareButton.textContent = 'Uploading...';
+
+        let imageBlob = null;
+        let audioBlob = null;
+        let imageUrl = null;
+        let audioUrl = null;
+
+        try {
+          imageBlob = await new Promise(resolve => frozenImage.canvas.toBlob(resolve, 'image/png'));
+        } catch (error) {
+          console.error("Error getting image data:", error);
+          alert("Could not get image data. Sharing failed.");
+          shareButton.disabled = false;
+          shareButton.textContent = 'Share';
+          return;
+        }
+
+        try {
+          if (soundFile && soundFile.isLoaded() && soundFile.duration() > 0) {
+            audioBlob = soundFile.getBlob();
+          } else {
+            console.log("No valid audio recorded. Sharing image only.");
+          }
+        } catch (e) {
+          console.warn("Could not get audio blob, possibly due to recording error. Sharing image only.", e);
+          audioBlob = null;
+        }
+
+        const uniqueId = Date.now();
+        const imagePath = `creations/${uniqueId}-album.png`;
+        const audioPath = `creations/${uniqueId}-recording.wav`;
+
         const imageRef = storage.ref(imagePath);
         await imageRef.put(imageBlob);
         imageUrl = await imageRef.getDownloadURL();
 
-        // 6. upload audio (if exists)
         if (audioBlob) {
           const audioRef = storage.ref(audioPath);
           await audioRef.put(audioBlob);
           audioUrl = await audioRef.getDownloadURL();
         }
 
-        // 7. save link to firebase firestore
-        const creationRef = await db.collection("creations").add({
+        const dataToSave = {
           imageUrl: imageUrl,
-          audioUrl: audioUrl, // save image url and audio url (if exists)
+          audioUrl: audioUrl,
           albumName: document.getElementById("albumName").value || "Untitled Album",
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          userId: user ? user.uid : null
+        };
 
-        // 8. generate shareable link
+        const creationRef = await db.collection("creations").add(dataToSave);
+
         let currentURL = window.location.href;
         let baseURL = currentURL.substring(0, currentURL.lastIndexOf('/') + 1);
-
-        // integrate the unique document ID
         const shareLink = `${baseURL}share.html?id=${creationRef.id}`;
 
         document.getElementById('shareLinkContainer').innerHTML =
           `Share this link: <a href="${shareLink}" target="_blank">${shareLink}</a>`;
 
-        shareButton.textContent = 'Shared!';
         alert('Success! Your creation is ready to be shared.');
-        // 9. reset buttons
+
         shareButton.disabled = false;
         shareButton.textContent = 'Share';
+
       } catch (error) {
         console.error("Upload failed:", error);
         alert('Upload failed. Please check the console for details.');
+        const shareButton = document.getElementById('share');
         shareButton.disabled = false;
         shareButton.textContent = 'Share';
       }

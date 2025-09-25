@@ -335,3 +335,45 @@ p {
 .side-menu a:hover {
   background: #477e60;
 }
+
+/* style.css */
+
+/* --- 为登录后的侧边栏添加样式 --- */
+
+/* 让包含欢迎信息和登出按钮的容器
+  变成一个垂直居中的flex布局
+*/
+.side-menu-user {
+  display: flex;
+  flex-direction: column;
+  /* 项目垂直排列 */
+  align-items: center;
+  /* 水平居中 */
+  justify-content: center;
+  /* 垂直居中 */
+  gap: 0.5em;
+  /* 在欢迎语和登出按钮之间增加一些间隙 */
+  padding-bottom: 0.5em;
+  /* 调整底部的内边距 */
+}
+
+/* 为欢迎语 <p> 标签设置样式 
+  (可以根据你的喜好调整字体大小和颜色)
+*/
+.side-menu-user p {
+  margin: 0;
+  /* 移除默认的 margin */
+  padding: 0;
+  /* 移除默认的 padding */
+  font-family: 'Sedan', serif;
+  /* 和你网站的其他部分保持风格统一 */
+  font-size: 0.9em;
+  color: #333;
+  /* 深灰色字体 */
+}
+
+/* 确保登出按钮和其他侧边栏链接样式一致 
+*/
+.side-menu-user .side-menu-signin {
+  margin-top: 0.2em;
+}
