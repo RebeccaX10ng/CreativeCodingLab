@@ -204,7 +204,9 @@
 
         shareButton.textContent = 'Shared!';
         alert('Success! Your creation is ready to be shared.');
-
+        // 9. 【新功能】重置按钮，以便进行下一次创作！
+        shareButton.disabled = false; // 重新启用按钮
+        shareButton.textContent = 'Share'; // 将按钮文字恢复原样
       } catch (error) {
         console.error("Upload failed:", error);
         alert('Upload failed. Please check the console for details.');
