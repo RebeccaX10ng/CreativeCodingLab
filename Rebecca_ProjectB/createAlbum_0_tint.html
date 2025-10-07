@@ -4,105 +4,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Create My Album</title>
   <link rel="stylesheet" href="css/style.css">
 
   <script src="js/lib/p5.js"></script>
   <script src="js/lib/p5.sound.js"></script>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.1/addons/p5.sound.min.js"></script> -->
-  <!-- //embed a font -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sedan:ital@0;1&display=swap" rel="stylesheet">
-  <!-- firebase -->
+
   <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-storage-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
 </head>
 
 <body>
-  <div id="sideMenuBtn">&#9776;</div>
-  <nav id="sideMenu" class="side-menu">
-    <div class="side-menu-categories">
-      <a href="#" class="side-menu-link">Public Gallery</a>
-      <a href="my-creations.html" id="myCollectionsLink" class="side-menu-link">My Collections</a>
-      <a href="select_a_template.html" class="side-menu-link">Create My Record</a>
-    </div>
-    <div id="authContainer" class="side-menu-bottom">
-      <a href="#" class="side-menu-signin">Sign In</a>
-    </div>
-  </nav>
-  <script>
-    const menuBtn = document.getElementById('sideMenuBtn');
-    const sideMenu = document.getElementById('sideMenu');
-    menuBtn.onclick = () => {
-      sideMenu.classList.toggle('open');
-    };
-    document.addEventListener('click', (e) => {
-      if (!sideMenu.contains(e.target) && e.target !== menuBtn) {
-        sideMenu.classList.remove('open');
-      }
-    });
-  </script>
+  <div id="menu-placeholder"></div>
 
   <h1 class="title">
     <span class="titleItalic">CREATE</span> <span class="titleNormal">A New Album</span>
   </h1>
 
   <div id="return">
-    <a href="select_a_template.html">
-      Try Other Templates
-    </a>
+    <a href="select_a_template.html">Try Other Templates</a>
   </div>
 
   <div id="wrapper">
-    <div id="canvasContainer">
-      <!-- p5 canvas will be appended here! -->
-    </div>
+    <div id="canvasContainer"></div>
     <div id="inputBox">
       <input id="albumName" type="text" placeholder="Insert Your Album Name">
     </div>
-    <!-- <div id="captureButton"><button id="capture">Save!</button></div> -->
-    <!-- </div> -->
     <div id="checkBoxAlbumName">
       <input type="checkbox" id="showName">
       <label for="showName">Show Album Name on the Cover</label>
     </div>
-    <!-- <div id="colorPicker"> <label for="color-picker">Select a color:</label>
-    <input id="color-picker" type="color">
-    <label for="color-picker-background">Background color:</label>
-    <input id="color-picker-background" type="color">
-  </div> -->
+
     <div id="captureButton">
       <button id="capture" onclick="toggleFreeze()" class="btns">Freeze Image</button>
       <button id="saveImage" onclick="saveLocalImage()" class="btns">Save Image</button>
       <button id="record" class="btns" onclick="startRecording()">Record Audio</button>
       <button id="play" class="btns" onclick="playRecording()">Play Audio</button>
       <button id="saveAudio" class="btns" onclick="saveAudioRecording()">Save Audio</button>
-
       <button id="share" class="btns" onclick="uploadAndShare()">Share</button>
     </div>
 
+    <div id="shareOptions" style="text-align: center; margin-top: 1em;">
+      <input type="checkbox" id="setPublicCheckbox">
+      <label for="setPublicCheckbox">Make this creation public</label>
+    </div>
     <div id="shareLinkContainer" style="text-align: center; margin-top: 1em; word-wrap: break-word;"></div>
   </div>
 
-  <script>
-    function changeButtonText() {
-      var button = document.getElementById("capture");
-      if (button.innerHTML === "Save!") {
-        button.innerHTML = "Resume";
-      } else {
-        button.innerHTML = "Save!";
-      }
-    }
-  </script>
+  <script src="js/album_0_tint.js"></script>
+
+  <script type="module" src="js/main-ui.js"></script>
 
   <script src="js/album_0_tint.js"></script>
 
   <script>
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
       authDomain: "days-records.firebaseapp.com",
@@ -112,19 +73,30 @@
       appId: "1:454621890868:web:9095c79739212ca4e3bd61",
       measurementId: "G-7ZKGPTRHPP"
     };
-
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+
+    // --- 2. 获取所有需要的 Firebase 服务 ---
+    const auth = firebase.auth();
     const db = firebase.firestore();
     const storage = firebase.storage();
-    const auth = firebase.auth(); // 【【【 添加这一行代码！ 】】】
 
-    //Upload and share
-    // createAlbum_0_tint.html 的最后一个 <script> 标签内
+    // --- 3. 侧边栏菜单功能 (为了本页面功能完整) ---
+    const menuBtn = document.getElementById('sideMenuBtn');
+    const sideMenu = document.getElementById('sideMenu');
+    // (因为 menu-placeholder 还没加载，所以需要检查元素是否存在)
+    if (menuBtn && sideMenu) {
+      menuBtn.onclick = () => {
+        sideMenu.classList.toggle('open');
+      };
+      document.addEventListener('click', (e) => {
+        if (!sideMenu.contains(e.target) && e.target !== menuBtn) {
+          sideMenu.classList.remove('open');
+        }
+      });
+    }
+    // (注意：这里我们没有从 menu.html 加载，而是直接使用页面上的 HTML，所以需要这个简单的菜单脚本)
 
-    // ... Firebase 初始化代码之后 ...
 
-    //Upload and share
     async function uploadAndShare() {
       try {
         const user = auth.currentUser;
@@ -161,12 +133,9 @@
         try {
           if (soundFile && soundFile.isLoaded() && soundFile.duration() > 0) {
             audioBlob = soundFile.getBlob();
-          } else {
-            console.log("No valid audio recorded. Sharing image only.");
           }
         } catch (e) {
-          console.warn("Could not get audio blob, possibly due to recording error. Sharing image only.", e);
-          audioBlob = null;
+          console.warn("Could not get audio blob.", e);
         }
 
         const uniqueId = Date.now();
@@ -182,17 +151,56 @@
           await audioRef.put(audioBlob);
           audioUrl = await audioRef.getDownloadURL();
         }
+        let newPosition = { x: Math.random() * 3000, y: Math.random() * 3000 };
+        const isPublic = document.getElementById('setPublicCheckbox').checked;
 
+        if (isPublic) {
+          // 如果用户选择公开，我们尝试找到一个“锚点”
+          console.log("Finding an anchor point for public creation...");
+          const publicCreationsQuery = await db.collection("creations")
+            .where("isPublic", "==", true)
+            .limit(20) // 随机获取最多20个已存在的公开作品，避免读取整个数据库
+            .get();
+
+          if (!publicCreationsQuery.empty) {
+            // 如果找到了已存在的公开作品
+            const existingCreations = [];
+            publicCreationsQuery.forEach(doc => {
+              if (doc.data().position) { // 确保这个旧作品有坐标数据
+                existingCreations.push(doc.data());
+              }
+            });
+
+            if (existingCreations.length > 0) {
+              // 从中随机挑选一个作为“锚点”
+              const anchorCreation = existingCreations[Math.floor(Math.random() * existingCreations.length)];
+              const anchorPos = anchorCreation.position;
+              console.log("Anchor point found at:", anchorPos);
+
+              // 在锚点附近100-200像素的随机位置生成新坐标
+              const angle = Math.random() * 2 * Math.PI; // 随机角度
+              const radius = 100 + Math.random() * 100; // 随机半径 (100到200之间)
+
+              newPosition.x = anchorPos.x + Math.cos(angle) * radius;
+              newPosition.y = anchorPos.y + Math.sin(angle) * radius;
+            }
+
+          } else {
+            // 如果这是第一个公开的作品，就把它放在画布中心
+            console.log("This is the first public creation. Placing it at the center.");
+            newPosition = { x: 1500, y: 1500 };
+          }
+        }
         const dataToSave = {
           imageUrl: imageUrl,
           audioUrl: audioUrl,
           albumName: document.getElementById("albumName").value || "Untitled Album",
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          userId: user ? user.uid : null
+          userId: user ? user.uid : null,
+          isPublic: isPublic,
+          position: newPosition // 使用我们刚刚计算出的新坐标
         };
-
         const creationRef = await db.collection("creations").add(dataToSave);
-
         let currentURL = window.location.href;
         let baseURL = currentURL.substring(0, currentURL.lastIndexOf('/') + 1);
         const shareLink = `${baseURL}share.html?id=${creationRef.id}`;

@@ -5,12 +5,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: "AIzaSy...YOUR_API_KEY",
-    authDomain: "your-project-id.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project-id.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef123456"
+    apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
+    authDomain: "days-records.firebaseapp.com",
+    projectId: "days-records",
+    storageBucket: "days-records.firebasestorage.app",
+    messagingSenderId: "454621890868",
+    appId: "1:454621890868:web:9095c79739212ca4e3bd61",
+    measurementId: "G-7ZKGPTRHPP"
 };
 
 // initialize Firebase

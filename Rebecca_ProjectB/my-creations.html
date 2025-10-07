@@ -46,11 +46,23 @@
 </head>
 
 <body>
-    <h1>My Creations</h1>
+    <h1 class="title">
+        <span class="titleItalic">My Creations</span>
+    </h1>
     <p id="loadingMessage">Loading your creations...</p>
     <p id="loginMessage" style="display: none;">Please log in to see your creations.</p>
     <div id="galleryContainer"></div>
-
+    <div id="sideMenuBtn">&#9776;</div>
+    <nav id="sideMenu" class="side-menu">
+        <div class="side-menu-categories">
+            <a href="public-gallery.html" class="side-menu-link">Public Gallery</a>
+            <a href="my-creations.html" id="myCollectionsLink" class="side-menu-link">My Collections</a>
+            <a href="select_a_template.html" class="side-menu-link">Create My Record</a>
+        </div>
+        <div id="authContainer" class="side-menu-bottom">
+            <a href="#" class="side-menu-signin">Sign In</a>
+        </div>
+    </nav>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
@@ -95,13 +107,23 @@
                         // 为每个作品创建卡片
                         const item = document.createElement('div');
                         item.className = 'gallery-item';
+
+                        // 【新】根据作品的公开状态，显示不同的按钮和文本
+                        let privacyControl = '';
+                        if (creation.isPublic) {
+                            privacyControl = `<button onclick="togglePrivacy('${doc.id}', false)">Make Private</button>`;
+                        } else {
+                            privacyControl = `<button onclick="togglePrivacy('${doc.id}', true)">Make Public</button>`;
+                        }
+
                         item.innerHTML = `
-              <a href="${shareLink}" target="_blank">
-                <img src="${creation.imageUrl}" alt="${creation.albumName}">
-              </a>
-              <p>${creation.albumName}</p>
-              <a href="${shareLink}" target="_blank">View</a>
-            `;
+        <a href="${shareLink}" target="_blank">
+            <img src="${creation.imageUrl}" alt="${creation.albumName}">
+        </a>
+        <p>${creation.albumName}</p>
+        <p>Status: ${creation.isPublic ? 'Public' : 'Private'}</p>
+        ${privacyControl}
+    `;
                         galleryContainer.appendChild(item);
                     });
 
@@ -116,6 +138,30 @@
                 galleryContainer.innerHTML = '';
             }
         });
+        async function togglePrivacy(docId, makePublic) {
+            try {
+                await db.collection("creations").doc(docId).update({
+                    isPublic: makePublic
+                });
+                alert('Privacy status updated successfully! Please refresh the page to see changes.');
+                location.reload(); // 简单地刷新页面来更新UI
+            } catch (error) {
+                console.error("Error updating privacy:", error);
+                alert('Failed to update privacy status.');
+            }
+        }
+
+        const menuBtn = document.getElementById('sideMenuBtn');
+        const sideMenu = document.getElementById('sideMenu');
+        menuBtn.onclick = () => {
+            sideMenu.classList.toggle('open');
+        };
+        document.addEventListener('click', (e) => {
+            if (!sideMenu.contains(e.target) && e.target !== menuBtn) {
+                sideMenu.classList.remove('open');
+            }
+        });
+
     </script>
 </body>
 
