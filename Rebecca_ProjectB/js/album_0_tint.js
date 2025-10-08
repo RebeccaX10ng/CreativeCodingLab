@@ -11,8 +11,8 @@ let button;
 
 let checked = false;
 
-//2024.5.3 Modified Version
-let frozenImage; // 这个现在将是一个 p5.Graphics 对象，而不是 p5.Image
+//2025.10.7
+let frozenImage; // p5.Graphics
 let frozen = false;
 let rotationAngle = 0;
 let clickCount = 0;
@@ -24,6 +24,11 @@ let mic;
 let recorder;
 let soundFile;
 let isRecording = false;
+
+function preload() {
+  oswald = loadFont('assets/oswald.ttf');
+
+}
 
 function setup() {
   let canvas = createCanvas(640, 640);
@@ -54,9 +59,7 @@ function setup() {
 }
 
 function draw() {
-  background(0); // 主画布仍然可以有背景色，这不影响 frozenImage 的透明度
-
-  // 如果没有冻结，则继续绘制实时视频效果
+  background(0);
   if (!frozen) {
     vid.loadPixels();
     for (let i = 0; i < vid.width; i++) {
@@ -65,7 +68,7 @@ function draw() {
         let r = vid.pixels[index + 0];
         let g = vid.pixels[index + 1];
         let b = vid.pixels[index + 2];
-        // let a = vid.pixels[index + 3]; // 视频通常是完全不透明的，所以a值在此处不关键
+
         noStroke();
         fill(r * tintR, g * tintG, b * tintB);
         ellipse(i * scl, j * scl, scl, scl);
@@ -73,7 +76,12 @@ function draw() {
     }
   }
 
-  // 主画布上绘制外圈，这部分不会被保存到透明图片里
+
+  if (checked) {
+    albumName.display();
+    albumName.update();
+  }
+
   push();
   stroke(150, 255, 210);
   strokeWeight(160);
@@ -81,12 +89,7 @@ function draw() {
   circle(width / 2, height / 2, 780);
   pop();
 
-  if (checked) {
-    albumName.display();
-    albumName.update();
-  }
-
-  if (frozen && frozenImage) { // 冻结状态下显示 frozenImage
+  if (frozen && frozenImage) {
     rotateCanvas();
   }
 }
@@ -95,51 +98,43 @@ function toggleFreeze() {
   clickCount++;
   const button = document.getElementById("capture");
 
-  if (clickCount % 2 === 1) { // 冻结操作
-    // 【核心修改：生成透明圆图的逻辑】
+  if (clickCount % 2 === 1) {
     frozenImage = createCircularTransparentImage();
     frozen = true;
     button.innerHTML = "Resume";
-  } else { // 解冻操作
+  } else {
     frozen = false;
     rotationAngle = 0;
-    frozenImage = null; // 清除 frozenImage，释放内存
+    frozenImage = null;
     button.innerHTML = "Freeze Image";
   }
 }
-
-// 【新增函数：创建圆形透明图片】
-// album_0_tint.js
-
-// 【新增函数：创建圆形透明图片】
-// album_0_tint.js
-
-// 【【【 用这个修正后的版本，替换掉你现有的同名函数 】】】
 function createCircularTransparentImage() {
-  let graphics = createGraphics(width, height); // 创建一个离屏画布，默认透明
+  let graphics = createGraphics(width, height);
 
-  // --- 【核心修正】---
-  // 1. 从全局的 `vid` 读取像素，并绘制到 `graphics` 画布上
-  vid.loadPixels(); // 读取实时视频的像素
+  vid.loadPixels(); //read current frame pixels
   for (let i = 0; i < vid.width; i++) {
     for (let j = 0; j < vid.height; j++) {
       let index = ((j * vid.width) + i) * 4;
-      // 从全局 vid 读取像素颜色
       let r = vid.pixels[index + 0];
       let g = vid.pixels[index + 1];
       let b = vid.pixels[index + 2];
-      // 【重要】在 graphics 画布上进行绘制
+      // draw on graphics
       graphics.noStroke();
       graphics.fill(r * tintR, g * tintG, b * tintB);
       graphics.ellipse(i * scl, j * scl, scl, scl);
     }
   }
 
-  // 2. 如果专辑名需要显示，也在离屏画布上绘制
   if (checked) {
     graphics.textSize(60);
     graphics.fill(albumName.nameR, albumName.nameG, albumName.nameB);
-    graphics.textFont('Courier New');
+    if (isPureAscii(this.albumName)) {
+      graphics.textFont(oswald);
+    } else {
+      graphics.textFont('Arial');
+    }
+
     let constrainedX = constrain(albumName.bounceX, 0, width - graphics.textWidth(albumName.albumName));
     let constrainedY = constrain(albumName.bounceY, 60, height - 30);
     graphics.text(albumName.albumName, constrainedX, constrainedY);
@@ -210,13 +205,19 @@ function rotateCanvas() {
   pop(); // 恢复之前的绘图状态，避免影响其他元素
 
 }
+function isPureAscii(str) {
+  // 正则表达式：从字符串开头(^)到结尾($)
+  // 匹配所有在 ASCII 范围内的字符 (\x00-\x7F)
+  return /^[\x00-\x7F]*$/.test(str);
+}
+// album_0_tint.js 或 create.js
 
 class AlbumName {
   constructor() {
     this.bounceX = random(width);
     this.bounceY = random(height);
-    this.textSpdX = 3;
-    this.textSpdY = 3;
+    this.textSpdX = 5;
+    this.textSpdY = 5;
     this.nameR = random(255);
     this.nameG = random(255);
     this.nameB = random(255);
@@ -228,26 +229,55 @@ class AlbumName {
   }
 
   display() {
+
     textSize(60);
     fill(this.nameR, this.nameG, this.nameB);
-    textFont('Courier New');
-    let constrainedX = constrain(this.bounceX, 0, width - textWidth(this.albumName));
-    let constrainedY = constrain(this.bounceY, 60, height - 30);
-    text(this.albumName, constrainedX, constrainedY);
+    if (isPureAscii(this.albumName)) {
+      textFont(oswald);
+    } else {
+      textFont('Arial');
+    }
+    // display() 函数不需要 constrain, update() 会处理边界
+    text(this.albumName, this.bounceX, this.bounceY);
   }
 
   update() {
+    // 1. 更新位置
     this.bounceX += this.textSpdX;
     this.bounceY += this.textSpdY;
 
-    if (this.bounceX <= 0 || this.bounceX >= width - textWidth(this.albumName)) {
-      this.textSpdX = -this.textSpdX;
-      this.nameR = random(255);
-      this.nameG = random(255);
-      this.nameB = random(255);
+    // 2. 定义边界
+    const rightBoundary = width - textWidth(this.albumName);
+    const leftBoundary = 0;
+    const bottomBoundary = height - 30; // 文本底部
+    const topBoundary = 60;        // 文本顶部
+
+    let hitEdge = false; // 用于标记是否撞到边
+
+    // 3. 【核心修正】检查水平碰撞
+    if (this.bounceX >= rightBoundary) {
+      this.bounceX = rightBoundary; // 强制拉回到边界上
+      this.textSpdX *= -1;         // 反转速度
+      hitEdge = true;
+    } else if (this.bounceX <= leftBoundary) {
+      this.bounceX = leftBoundary;
+      this.textSpdX *= -1;
+      hitEdge = true;
     }
-    if (this.bounceY <= 0 || this.bounceY >= height - 25) {
-      this.textSpdY = -this.textSpdY;
+
+    // 4. 【核心修正】检查垂直碰撞
+    if (this.bounceY >= bottomBoundary) {
+      this.bounceY = bottomBoundary;
+      this.textSpdY *= -1;
+      hitEdge = true;
+    } else if (this.bounceY <= topBoundary) {
+      this.bounceY = topBoundary;
+      this.textSpdY *= -1;
+      hitEdge = true;
+    }
+
+    // 5. 如果撞到了任何一条边，只改变一次颜色
+    if (hitEdge) {
       this.nameR = random(255);
       this.nameG = random(255);
       this.nameB = random(255);
