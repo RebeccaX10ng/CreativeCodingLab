@@ -6,31 +6,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Creations</title>
     <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-storage-compat.js"></script>
+
     <style>
-        /* 为这个页面添加一些简单样式 */
         #galleryContainer {
             display: flex;
             flex-wrap: wrap;
-            gap: 1em;
-            padding: 1em;
+            gap: 2em;
+            padding: 2em;
             justify-content: center;
         }
 
         .gallery-item {
             border: 3px solid white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             text-align: center;
+            padding-bottom: 10px;
+            background-color: #fff;
+            border-radius: 5px;
         }
 
         .gallery-item img {
             display: block;
-            width: 200px;
-            height: 200px;
+            width: 250px;
+            height: 250px;
             object-fit: cover;
         }
 
-        .gallery-item a {
-            font-family: 'Courier New', Courier, monospace;
+        .gallery-item p {
+            font-family: "Sedan", serif;
+            margin: 0.8em 0;
+            font-weight: bold;
+            font-size: 1.1em;
         }
 
         #loadingMessage,
@@ -39,19 +50,44 @@
             font-size: 1.5em;
             padding: 2em;
         }
+
+        .item-controls {
+            display: flex;
+            justify-content: space-around;
+            padding: 0 10px;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            border: 1px solid #180000;
+            background-color: brown;
+            cursor: pointer;
+            font-family: "Sedan", serif;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+            width: 110px;
+        }
+
+        .control-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .delete-btn {
+            border-color: #4c0000;
+            background-color: #ff0000;
+        }
+
+        .delete-btn:hover {
+            background-color: #ff4d4d;
+            color: white;
+        }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
 </head>
 
 <body>
-    <h1 class="title">
-        <span class="titleItalic">My Creations</span>
-    </h1>
-    <p id="loadingMessage">Loading your creations...</p>
-    <p id="loginMessage" style="display: none;">Please log in to see your creations.</p>
-    <div id="galleryContainer"></div>
     <div id="sideMenuBtn">&#9776;</div>
     <nav id="sideMenu" class="side-menu">
         <div class="side-menu-categories">
@@ -60,9 +96,17 @@
             <a href="select_a_template.html" class="side-menu-link">Create My Record</a>
         </div>
         <div id="authContainer" class="side-menu-bottom">
-            <a href="#" class="side-menu-signin">Sign In</a>
         </div>
     </nav>
+
+    <h1 class="title">
+        <span class="titleItalic">My Creations</span>
+    </h1>
+
+    <p id="loadingMessage">Loading your creations...</p>
+    <p id="loginMessage" style="display: none;">Please log in to see your creations.</p>
+    <div id="galleryContainer"></div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
@@ -74,91 +118,160 @@
             measurementId: "G-7ZKGPTRHPP"
         };
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+
         const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
 
-        auth.onAuthStateChanged(async (user) => {
-            const galleryContainer = document.getElementById('galleryContainer');
-            const loadingMessage = document.getElementById('loadingMessage');
-            const loginMessage = document.getElementById('loginMessage');
+        const creationsGrid = document.getElementById('galleryContainer');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const loginMessage = document.getElementById('loginMessage');
 
+        auth.onAuthStateChanged(user => {
             if (user) {
-                // 用户已登录，查询属于他的作品
                 loginMessage.style.display = 'none';
                 loadingMessage.style.display = 'block';
-                galleryContainer.innerHTML = ''; // 清空旧内容
-
-                try {
-                    const querySnapshot = await db.collection("creations")
-                        .where("userId", "==", user.uid) // 【【【 核心查询 】】】
-                        .orderBy("createdAt", "desc") // 按创建时间倒序排列
-                        .get();
-
-                    loadingMessage.style.display = 'none';
-
-                    if (querySnapshot.empty) {
-                        galleryContainer.innerHTML = "<p>You haven't created anything yet!</p>";
-                    }
-
-                    querySnapshot.forEach((doc) => {
-                        const creation = doc.data();
-                        const shareLink = `share.html?id=${doc.id}`;
-
-                        // 为每个作品创建卡片
-                        const item = document.createElement('div');
-                        item.className = 'gallery-item';
-
-                        // 【新】根据作品的公开状态，显示不同的按钮和文本
-                        let privacyControl = '';
-                        if (creation.isPublic) {
-                            privacyControl = `<button onclick="togglePrivacy('${doc.id}', false)">Make Private</button>`;
-                        } else {
-                            privacyControl = `<button onclick="togglePrivacy('${doc.id}', true)">Make Public</button>`;
-                        }
-
-                        item.innerHTML = `
-        <a href="${shareLink}" target="_blank">
-            <img src="${creation.imageUrl}" alt="${creation.albumName}">
-        </a>
-        <p>${creation.albumName}</p>
-        <p>Status: ${creation.isPublic ? 'Public' : 'Private'}</p>
-        ${privacyControl}
-    `;
-                        galleryContainer.appendChild(item);
-                    });
-
-                } catch (error) {
-                    console.error("Error fetching creations:", error);
-                    loadingMessage.textContent = "Could not load creations.";
-                }
+                loadUserCreations(user.uid);
             } else {
-                // 用户未登录
                 loadingMessage.style.display = 'none';
                 loginMessage.style.display = 'block';
-                galleryContainer.innerHTML = '';
+                if (creationsGrid) creationsGrid.innerHTML = '';
             }
         });
-        async function togglePrivacy(docId, makePublic) {
+
+        async function loadUserCreations(userId) {
+            if (!creationsGrid) return;
+            creationsGrid.innerHTML = '';
+            loadingMessage.style.display = 'block';
+
             try {
-                await db.collection("creations").doc(docId).update({
-                    isPublic: makePublic
+                const querySnapshot = await db.collection("creations")
+                    .where("userId", "==", userId)
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                loadingMessage.style.display = 'none';
+
+                if (querySnapshot.empty) {
+                    creationsGrid.innerHTML = '<h2>You have not created anything yet.</h2>';
+                    return;
+                }
+
+                //process creations from database
+                querySnapshot.forEach(doc => {
+                    const creation = { id: doc.id, ...doc.data() };
+
+                    // 1. create main container div
+                    const creationDiv = document.createElement('div');
+                    creationDiv.className = 'gallery-item';
+                    creationDiv.id = `creation-${creation.id}`;
+
+                    // 2.create image and link
+                    const creationLink = document.createElement('a');
+                    creationLink.href = `share.html?id=${creation.id}`;
+                    creationLink.target = '_blank';
+                    const img = document.createElement('img');
+                    img.src = creation.imageUrl;
+                    img.alt = creation.albumName;
+                    creationLink.appendChild(img);
+
+                    // 3. title
+                    const title = document.createElement('p');
+                    title.textContent = creation.albumName;
+
+                    // 4. controls container
+                    const controlsDiv = document.createElement('div');
+                    controlsDiv.className = 'item-controls';
+
+                    // 5. visibility button
+                    const visibilityBtn = document.createElement('button');
+                    visibilityBtn.className = 'control-btn';
+                    visibilityBtn.textContent = creation.isPublic ? 'Make Private' : 'Make Public';
+                    visibilityBtn.onclick = () => toggleVisibility(creation.id, creation.isPublic, visibilityBtn);
+
+                    // 6. delete button
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'control-btn delete-btn';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.onclick = () => deleteCreation(creation.id, creation.imageUrl, creation.audioUrl);
+
+                    // 7. append buttons to controls div
+                    controlsDiv.appendChild(visibilityBtn);
+                    controlsDiv.appendChild(deleteBtn);
+
+                    // 8. combine components
+                    creationDiv.appendChild(creationLink);
+                    creationDiv.appendChild(title);
+                    creationDiv.appendChild(controlsDiv);
+                    // append to main grid
+                    creationsGrid.appendChild(creationDiv);
                 });
-                alert('Privacy status updated successfully! Please refresh the page to see changes.');
-                location.reload(); // 简单地刷新页面来更新UI
             } catch (error) {
-                console.error("Error updating privacy:", error);
-                alert('Failed to update privacy status.');
+                console.error("Error loading user creations:", error);
+                loadingMessage.style.display = 'none';
+                creationsGrid.innerHTML = '<h2>Could not load creations. Please try again later.</h2>';
             }
         }
 
+        async function toggleVisibility(creationId, currentVisibility, button) {
+            const newVisibility = !currentVisibility;
+            button.disabled = true;
+            button.textContent = 'Updating...';
+            try {
+                await db.collection("creations").doc(creationId).update({ isPublic: newVisibility });
+                button.textContent = newVisibility ? 'Make Private' : 'Make Public';
+                //update the onclick to reflect new state
+                button.onclick = () => toggleVisibility(creationId, newVisibility, button);
+            } catch (error) {
+                console.error("Error updating visibility:", error);
+                alert("Failed to update visibility status.");
+                button.textContent = currentVisibility ? 'Make Private' : 'Make Public';
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        async function deleteCreation(creationId, imageUrl, audioUrl) {
+            if (!confirm("Are you sure you want to permanently delete this creation? This action cannot be undone.")) {
+                return;
+            }
+            try {
+                if (imageUrl) { await storage.refFromURL(imageUrl).delete(); }
+                if (audioUrl) { await storage.refFromURL(audioUrl).delete(); }
+                await db.collection("creations").doc(creationId).delete();
+                document.getElementById(`creation-${creationId}`)?.remove();
+                alert("Creation deleted successfully!");
+            } catch (error) {
+                console.error("Error deleting creation:", error);
+                alert("Failed to delete creation. Please check the console for details.");
+            }
+        }
+
+        //sidebar
         const menuBtn = document.getElementById('sideMenuBtn');
         const sideMenu = document.getElementById('sideMenu');
-        menuBtn.onclick = () => {
-            sideMenu.classList.toggle('open');
-        };
-        document.addEventListener('click', (e) => {
-            if (!sideMenu.contains(e.target) && e.target !== menuBtn) {
-                sideMenu.classList.remove('open');
+        const authContainer = document.getElementById('authContainer');
+        const myCollectionsLink = document.getElementById('myCollectionsLink');
+
+        if (menuBtn && sideMenu) {
+            menuBtn.onclick = () => sideMenu.classList.toggle('open');
+            document.addEventListener('click', (e) => {
+                if (e && e.target && !sideMenu.contains(e.target) && e.target !== menuBtn) {
+                    sideMenu.classList.remove('open');
+                }
+            });
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (!authContainer || !myCollectionsLink) return;
+            if (user) {
+                authContainer.innerHTML = `<div class="side-menu-user"><p>Welcome, ${user.displayName.split(' ')[0]}!</p><a href="#" id="signOutBtn" class="side-menu-signin">Sign Out</a></div>`;
+                document.getElementById('signOutBtn').addEventListener('click', (e) => { e.preventDefault(); auth.signOut(); });
+                myCollectionsLink.href = 'my-creations.html';
+            } else {
+                authContainer.innerHTML = `<a href="#" id="signInBtn" class="side-menu-signin">Sign In</a>`;
+                document.getElementById('signInBtn').addEventListener('click', (e) => { e.preventDefault(); const provider = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(provider).catch(error => console.error(error)); });
+                myCollectionsLink.href = '#';
             }
         });
 

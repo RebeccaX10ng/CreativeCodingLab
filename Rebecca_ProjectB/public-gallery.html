@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
 
     <style>
-        /* 基础样式 */
         html,
         body {
             width: 100%;
@@ -20,32 +19,43 @@
             background-color: #96ffd2;
         }
 
-        /* 视窗，这是我们能看到的区域 */
         #viewport {
             width: 100%;
             height: 100%;
             position: relative;
         }
 
-        /* 世界地图，一个巨大的容器，我们将在其中移动 */
         #world {
             position: absolute;
-            /* 通过 transform 来移动整个世界，模拟镜头平移 */
             transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-            /* 平滑过渡效果 */
         }
 
-        /* 单个作品的样式 */
         .gallery-item {
             position: absolute;
-            /* 使用绝对定位来放置作品 */
-            width: 120px;
-            height: 120px;
-            border: 4px solid white;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 200px;
+            height: 200 px;
+
+            border: 30px solid rgba(50, 0, 0, 255);
             cursor: pointer;
             transition: transform 0.3s ease;
-            /* 鼠标悬停时的放大效果 */
+            border-radius: 50%;
+            overflow: hidden;
+            object-fit: cover;
+            transform-origin: center center;
+        }
+
+        @keyframes rotateImage {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .gallery-item.rotating {
+            animation: rotateImage 20s linear infinite;
         }
 
         .gallery-item:hover {
@@ -72,11 +82,64 @@
         #viewport.is-dragging {
             cursor: grabbing;
         }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
+            width: 80%;
+            max-width: 900px;
+            height: 80%;
+            max-height: 700px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 35px;
+            height: 35px;
+            background: #333;
+            color: #fff;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            font-size: 24px;
+            line-height: 32px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
 <body>
-
+    <h1 class="title">
+        <span class="titleItalic">Public Gallery</span>
+    </h1>
     <div id="viewport">
         <div id="world">
         </div>
@@ -97,9 +160,14 @@
     </div>
 
     <audio id="audioPlayer"></audio>
+    <div id="shareModal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="modalCloseBtn" class="modal-close">&times;</span>
+            <iframe id="shareIframe" class="modal-iframe" src="" allow="autoplay"></iframe>
+        </div>
+    </div>
 
     <script>
-        // --- Firebase 初始化 ---
         const firebaseConfig = {
             apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
             authDomain: "days-records.firebaseapp.com",
@@ -109,39 +177,34 @@
             appId: "1:454621890868:web:9095c79739212ca4e3bd61",
             measurementId: "G-7ZKGPTRHPP"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        //global variables
         const viewport = document.getElementById('viewport');
         const world = document.getElementById('world');
         const audioPlayer = document.getElementById('audioPlayer');
         const playBtn = document.getElementById('playBtn');
 
-        let creations = [];
-        let playlist = [];
-        let isPlaying = false;
+        // Modal elements
+        const shareModal = document.getElementById('shareModal');
+        const shareIframe = document.getElementById('shareIframe');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
 
+        let creations = [], playlist = [], isPlaying = false;
+        let isDragging = false, startX, startY, worldX = 0, worldY = 0, initialWorldX = 0, initialWorldY = 0, scale = 1;
 
-        let isDragging = false;
-        let startX, startY;
-        let worldX = 0, worldY = 0;
-        let initialWorldX = 0, initialWorldY = 0;
-        let scale = 1;
+        //rotation
+        let currentRotatingItem = null;
 
-        //load and render public creations
+        //load images
         async function loadPublicCreations() {
             try {
-                const querySnapshot = await db.collection("creations")
-                    .where("isPublic", "==", true).get();
-
+                const querySnapshot = await db.collection("creations").where("isPublic", "==", true).get();
                 const renderedCreations = [];
-
                 querySnapshot.forEach(doc => {
                     const creation = { id: doc.id, ...doc.data() };
                     creations.push(creation);
-
                     if (creation.position) {
                         const item = document.createElement('img');
                         item.className = 'gallery-item';
@@ -150,53 +213,87 @@
                         item.style.left = `${creation.position.x}px`;
                         item.style.top = `${creation.position.y}px`;
                         item.id = `item-${creation.id}`;
-                        item.onclick = () => focusOnCreation(creation);
+                        item.onclick = () => {
+                            focusOnCreation(creation);
+                            openShareModal(creation);
+                        };
                         world.appendChild(item);
-
                         renderedCreations.push(creation);
                     }
                 });
-
                 if (renderedCreations.length > 0) {
-                    // focus on the first creation initially
                     focusOnCreation(renderedCreations[0], false);
                 }
-
-            } catch (error) {
-                console.error("Error loading creations:", error);
-            }
+            } catch (error) { console.error("Error loading creations:", error); }
         }
 
-        //focus on a specific creation
         function focusOnCreation(creation, shouldPlayAudio = false) {
             if (!creation || !creation.position) return;
-
-            //smooth move
             world.style.transition = 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
-
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-
-            //upload position
-            worldX = -creation.position.x + (viewportWidth / 2) - 60;
-            worldY = -creation.position.y + (viewportHeight / 2) - 60;
-
+            scale = 1;
+            worldX = -creation.position.x + (window.innerWidth / 2) - 60;
+            worldY = -creation.position.y + (window.innerHeight / 2) - 60;
             applyTransform();
+
+            if (currentRotatingItem) {
+                currentRotatingItem.classList.remove('rotating');
+            }
 
             if (shouldPlayAudio && creation.audioUrl) {
                 audioPlayer.src = creation.audioUrl;
                 audioPlayer.play();
+                const itemElement = document.getElementById(`item-${creation.id}`);
+                if (itemElement) {
+                    itemElement.classList.add('rotating');
+                    currentRotatingItem = itemElement;
+                }
+            } else {
+                if (currentRotatingItem) {
+                    currentRotatingItem.classList.remove('rotating');
+                    currentRotatingItem = null;
+                }
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
             }
-
         }
 
-        // play control
+        function openShareModal(creation) {
+            if (!creation) return;
+            const baseURL = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+            const shareLink = `${baseURL}share.html?id=${creation.id}`;
+            shareIframe.src = shareLink;
+            shareModal.style.display = 'flex';
+
+            audioPlayer.pause();
+            if (currentRotatingItem) {
+                currentRotatingItem.classList.remove('rotating');
+                currentRotatingItem = null;
+            }
+        }
+
+        function closeShareModal() {
+            shareModal.style.display = 'none';
+            shareIframe.src = '';
+            if (isPlaying && playlist.length > 0) {
+                playNext();
+            } else {
+                if (currentRotatingItem) {
+                    currentRotatingItem.classList.remove('rotating');
+                    currentRotatingItem = null;
+                }
+            }
+        }
+
         function togglePlayback() {
             if (isPlaying) {
                 audioPlayer.pause();
                 audioPlayer.currentTime = 0;
                 isPlaying = false;
                 playBtn.textContent = 'Play All';
+                if (currentRotatingItem) {
+                    currentRotatingItem.classList.remove('rotating');
+                    currentRotatingItem = null;
+                }
             } else {
                 playlist = creations.filter(c => c.audioUrl).sort(() => 0.5 - Math.random());
                 if (playlist.length > 0) {
@@ -205,24 +302,26 @@
                     playNext();
                 } else {
                     alert("No public creations with audio found!");
+                    isPlaying = false;
+                    playBtn.textContent = 'Play All';
                 }
             }
         }
 
-        // 4. 播放下一个音频 (有小幅修改)
         function playNext() {
             if (!isPlaying || playlist.length === 0) {
                 isPlaying = false;
                 playBtn.textContent = 'Play All';
+                if (currentRotatingItem) {
+                    currentRotatingItem.classList.remove('rotating');
+                    currentRotatingItem = null;
+                }
                 return;
             }
             const nextCreation = playlist.pop();
-            // 聚焦到下一个作品，并告诉函数需要播放音频
             focusOnCreation(nextCreation, true);
         }
-
-        // --- 【新】处理拖拽的函数 ---
-
+        //drag and zoom
         function onMouseDown(event) {
             isDragging = true;
             viewport.classList.add('is-dragging');
@@ -242,100 +341,76 @@
             worldY = initialWorldY + dy;
             applyTransform();
         }
+
         function onMouseUp() {
             isDragging = false;
             viewport.classList.remove('is-dragging');
             world.style.transition = 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
         }
-        function onWheel(event) {
-            event.preventDefault(); // 阻止页面默认的滚动行为
-            const zoomIntensity = 0.1;
-            const scrollDelta = event.deltaY < 0 ? 1 : -1; // 滚轮向上为1, 向下为-1
 
-            // 获取鼠标在视窗内的坐标
+        function onWheel(event) {
+            event.preventDefault();
+            const zoomIntensity = 0.1;
+            const scrollDelta = event.deltaY < 0 ? 1 : -1;
             const mouseX = event.clientX;
             const mouseY = event.clientY;
-
-            // 计算鼠标指向“世界”中的哪个点
             const worldPointX = (mouseX - worldX) / scale;
             const worldPointY = (mouseY - worldY) / scale;
-
-            // 计算新的缩放比例，并限制在合理范围
             const newScale = scale * (1 + scrollDelta * zoomIntensity);
-            scale = Math.max(0.25, Math.min(newScale, 4)); // 限制最小0.25倍，最大4倍
-
-            // 计算新的世界坐标，以保持鼠标下的点位置不变
+            scale = Math.max(0.25, Math.min(newScale, 4));
             worldX = mouseX - worldPointX * scale;
             worldY = mouseY - worldPointY * scale;
-
-            // 应用新的变换
             applyTransform();
         }
+
         function applyTransform() {
             world.style.transform = `translate(${worldX}px, ${worldY}px) scale(${scale})`;
         }
 
-        // --- 事件监听 ---
         playBtn.onclick = togglePlayback;
         audioPlayer.onended = playNext;
-        // 【新】为视窗绑定鼠标事件
         viewport.addEventListener('mousedown', onMouseDown);
         viewport.addEventListener('mousemove', onMouseMove);
         viewport.addEventListener('mouseup', onMouseUp);
-        viewport.addEventListener('mouseleave', onMouseUp); // 如果鼠标移出窗口，也停止拖动
-
+        viewport.addEventListener('mouseleave', onMouseUp);
         viewport.addEventListener('wheel', onWheel);
-        // --- 启动 ---
-        loadPublicCreations();
 
-        //side menu
+        //modal
+        modalCloseBtn.onclick = closeShareModal;
+        shareModal.addEventListener('click', (event) => {
+            if (event.target === shareModal) {
+                closeShareModal();
+            }
+        });
+
+        // sidebar menu
         const menuBtn = document.getElementById('sideMenuBtn');
         const sideMenu = document.getElementById('sideMenu');
-        menuBtn.onclick = () => {
-            sideMenu.classList.toggle('open');
-        };
-        // 点击菜单外部区域关闭菜单
+        menuBtn.onclick = () => { sideMenu.classList.toggle('open'); };
         document.addEventListener('click', (e) => {
-            if (!sideMenu.contains(e.target) && e.target !== menuBtn) {
+            if (e && e.target && !sideMenu.contains(e.target) && e.target !== menuBtn) {
                 sideMenu.classList.remove('open');
             }
         });
 
-        // --- 侧边栏登录/登出状态的逻辑 ---
-        const auth = firebase.auth(); // 初始化认证服务
-
+        // authentication
         auth.onAuthStateChanged((user) => {
             const authContainer = document.getElementById('authContainer');
             const myCollectionsLink = document.getElementById('myCollectionsLink');
-
             if (user) {
-                // 用户已登录
-                authContainer.innerHTML = `
-                    <div class="side-menu-user">
-                        <p>Welcome, ${user.displayName.split(' ')[0]}!</p>
-                        <a href="#" id="signOutBtn" class="side-menu-signin">Sign Out</a>
-                    </div>
-                `;
-                document.getElementById('signOutBtn').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    auth.signOut();
-                });
+                authContainer.innerHTML = `<div class="side-menu-user"><p>Welcome, ${user.displayName.split(' ')[0]}!</p><a href="#" id="signOutBtn" class="side-menu-signin">Sign Out</a></div>`;
+                document.getElementById('signOutBtn').addEventListener('click', (e) => { e.preventDefault(); auth.signOut(); });
                 myCollectionsLink.href = 'my-creations.html';
             } else {
-                // 用户未登录
-                authContainer.innerHTML = `
-                    <a href="#" id="signInBtn" class="side-menu-signin">Sign In</a>
-                `;
-                document.getElementById('signInBtn').addEventListener('click', (e) => {
-                    e.preventDefault();
-
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    auth.signInWithPopup(provider).catch(error => console.error(error));
-                });
+                authContainer.innerHTML = `<a href="#" id="signInBtn" class="side-menu-signin">Sign In</a>`;
+                document.getElementById('signInBtn').addEventListener('click', (e) => { e.preventDefault(); const provider = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(provider).catch(error => console.error(error)); });
                 myCollectionsLink.href = '#';
             }
         });
+
+        loadPublicCreations();
     </script>
+
 </body>
 
 </html>
