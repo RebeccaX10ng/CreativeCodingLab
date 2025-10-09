@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Public Gallery</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
+
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background-color: #96ffd2;
+        }
+
+        #viewport {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #world {
+            position: absolute;
+            transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gallery-item {
+            position: absolute;
+            width: 200px;
+            height: 200 px;
+
+            border: 30px solid rgba(50, 50, 50, 255);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            border-radius: 50%;
+            overflow: hidden;
+            object-fit: cover;
+            transform-origin: center center;
+        }
+
+        @keyframes rotateImage {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .gallery-item.rotating {
+            animation: rotateImage 20s linear infinite;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        #audioPlayer {
+            display: none;
+        }
+
+        #viewport {
+            cursor: grab;
+        }
+
+        #viewport.is-dragging {
+            cursor: grabbing;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
+            width: 80%;
+            max-width: 900px;
+            height: 80%;
+            max-height: 700px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 35px;
+            height: 35px;
+            background: #333;
+            color: #fff;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            font-size: 24px;
+            line-height: 32px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 class="title">
+        <span class="titleItalic">Public Gallery</span>
+    </h1>
+    <div id="viewport">
+        <div id="world">
+        </div>
+    </div>
+    <div id="sideMenuBtn">&#9776;</div>
+    <nav id="sideMenu" class="side-menu">
+        <div class="side-menu-categories">
+            <a href="public-gallery.html" class="side-menu-link">Public Gallery</a>
+            <a href="my-creations.html" id="myCollectionsLink" class="side-menu-link">My Collections</a>
+            <a href="select_a_template.html" class="side-menu-link">Create My Record</a>
+        </div>
+        <div id="authContainer" class="side-menu-bottom">
+            <a href="#" class="side-menu-signin">Sign In</a>
+        </div>
+    </nav>
+    <div id="controls">
+        <button id="playBtn" class="btns">Play All</button>
+    </div>
+
+    <audio id="audioPlayer"></audio>
+    <div id="shareModal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="modalCloseBtn" class="modal-close">&times;</span>
+            <iframe id="shareIframe" class="modal-iframe" src="" allow="autoplay"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOTjmMPnN16vh6zd6TQ3MVV1I1fqCpQ2U",
+            authDomain: "days-records.firebaseapp.com",
+            projectId: "days-records",
+            storageBucket: "days-records.firebasestorage.app",
+            messagingSenderId: "454621890868",
+            appId: "1:454621890868:web:9095c79739212ca4e3bd61",
+            measurementId: "G-7ZKGPTRHPP"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        const viewport = document.getElementById('viewport');
+        const world = document.getElementById('world');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+
+        // Modal elements
+        const shareModal = document.getElementById('shareModal');
+        const shareIframe = document.getElementById('shareIframe');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+        let creations = [], playlist = [], isPlaying = false;
+        let isDragging = false, startX, startY, worldX = 0, worldY = 0, initialWorldX = 0, initialWorldY = 0, scale = 1;
+
+        //rotation
+        let currentRotatingItem = null;
+
+        //load images
+        async function loadPublicCreations() {
+            try {
+                const querySnapshot = await db.collection("creations").where("isPublic", "==", true).get();
+                const renderedCreations = [];
+                querySnapshot.forEach(doc => {
+                    const creation = { id: doc.id, ...doc.data() };
+                    creations.push(creation);
+                    if (creation.position) {
+                        const item = document.createElement('img');
+                        item.className = 'gallery-item';
+                        item.src = creation.imageUrl;
+                        item.alt = creation.albumName;
+                        item.style.left = `${creation.position.x}px`;
+                        item.style.top = `${creation.position.y}px`;
+                        item.id = `item-${creation.id}`;
+                        item.onclick = () => {
+                            focusOnCreation(creation);
+                            openShareModal(creation);
+                        };
+                        world.appendChild(item);
+                        renderedCreations.push(creation);
+                    }
+                });
+                if (renderedCreations.length > 0) {
+                    focusOnCreation(renderedCreations[0], false);
+                }
+            } catch (error) { console.error("Error loading creations:", error); }
+        }
+
+        function focusOnCreation(creation, shouldPlayAudio = false) {
+            if (!creation || !creation.position) return;
+            world.style.transition = 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            scale = 1;
+            worldX = -creation.position.x + (window.innerWidth / 2) - 60;
+            worldY = -creation.position.y + (window.innerHeight / 2) - 60;
+            applyTransform();
+
+            if (currentRotatingItem) {
+                currentRotatingItem.classList.remove('rotating');
+            }
+
+            if (shouldPlayAudio && creation.audioUrl) {
+                audioPlayer.src = creation.audioUrl;
+                audioPlayer.play();
+                const itemElement = document.getElementById(`item-${creation.id}`);
+                if (itemElement) {
+                    itemElement.classList.add('rotating');
+                    currentRotatingItem = itemElement;
+                }
+            } else {
+                if (currentRotatingItem) {
+                    currentRotatingItem.classList.remove('rotating');
+                    currentRotatingItem = null;
+                }
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            }
+        }
+
+        function openShareModal(creation) {
+            if (!creation) return;
+            const baseURL = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+            const shareLink = `${baseURL}share.html?id=${creation.id}`;
+            shareIframe.src = shareLink;
+            shareModal.style.display = 'flex';
+
+            audioPlayer.pause();
+            if (currentRotatingItem) {
+                currentRotatingItem.classList.remove('rotating');
+                currentRotatingItem = null;
+            }
+        }
+
+        function closeShareModal() {
+            shareModal.style.display = 'none';
+            shareIframe.src = '';
+            if (isPlaying && playlist.length > 0) {
+                playNext();
+            } else {
+                if (currentRotatingItem) {
+                    currentRotatingItem.classList.remove('rotating');
+                    currentRotatingItem = null;
+                }
+            }
+        }
+
+        function togglePlayback() {
+            if (isPlaying) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+                isPlaying = false;
+                playBtn.textContent = 'Play All';
+                if (currentRotatingItem) {
+                    currentRotatingItem.classList.remove('rotating');
+                    currentRotatingItem = null;
+                }
+            } else {
+                playlist = creations.filter(c => c.audioUrl).sort(() => 0.5 - Math.random());
+                if (playlist.length > 0) {
+                    isPlaying = true;
+                    playBtn.textContent = 'Stop';
+                    playNext();
+                } else {
+                    alert("No public creations with audio found!");
+                    isPlaying = false;
+                    playBtn.textContent = 'Play All';
+                }
+            }
+        }
+
+        function playNext() {
+            if (!isPlaying || playlist.length === 0) {
+                isPlaying = false;
+                playBtn.textContent = 'Play All';
+                if (currentRotatingItem) {
+                    currentRotatingItem.classList.remove('rotating');
+                    currentRotatingItem = null;
+                }
+                return;
+            }
+            const nextCreation = playlist.pop();
+            focusOnCreation(nextCreation, true);
+        }
+        //drag and zoom
+        function onMouseDown(event) {
+            isDragging = true;
+            viewport.classList.add('is-dragging');
+            startX = event.pageX;
+            startY = event.pageY;
+            initialWorldX = worldX;
+            initialWorldY = worldY;
+            world.style.transition = 'none';
+        }
+
+        function onMouseMove(event) {
+            if (!isDragging) return;
+            event.preventDefault();
+            const dx = event.pageX - startX;
+            const dy = event.pageY - startY;
+            worldX = initialWorldX + dx;
+            worldY = initialWorldY + dy;
+            applyTransform();
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            viewport.classList.remove('is-dragging');
+            world.style.transition = 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        }
+
+        function onWheel(event) {
+            event.preventDefault();
+            const zoomIntensity = 0.1;
+            const scrollDelta = event.deltaY < 0 ? 1 : -1;
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            const worldPointX = (mouseX - worldX) / scale;
+            const worldPointY = (mouseY - worldY) / scale;
+            const newScale = scale * (1 + scrollDelta * zoomIntensity);
+            scale = Math.max(0.25, Math.min(newScale, 4));
+            worldX = mouseX - worldPointX * scale;
+            worldY = mouseY - worldPointY * scale;
+            applyTransform();
+        }
+
+        function applyTransform() {
+            world.style.transform = `translate(${worldX}px, ${worldY}px) scale(${scale})`;
+        }
+
+        playBtn.onclick = togglePlayback;
+        audioPlayer.onended = playNext;
+        viewport.addEventListener('mousedown', onMouseDown);
+        viewport.addEventListener('mousemove', onMouseMove);
+        viewport.addEventListener('mouseup', onMouseUp);
+        viewport.addEventListener('mouseleave', onMouseUp);
+        viewport.addEventListener('wheel', onWheel);
+
+        //modal
+        modalCloseBtn.onclick = closeShareModal;
+        shareModal.addEventListener('click', (event) => {
+            if (event.target === shareModal) {
+                closeShareModal();
+            }
+        });
+
+        // sidebar menu
+        const menuBtn = document.getElementById('sideMenuBtn');
+        const sideMenu = document.getElementById('sideMenu');
+        menuBtn.onclick = () => { sideMenu.classList.toggle('open'); };
+        document.addEventListener('click', (e) => {
+            if (e && e.target && !sideMenu.contains(e.target) && e.target !== menuBtn) {
+                sideMenu.classList.remove('open');
+            }
+        });
+
+        // authentication
+        auth.onAuthStateChanged((user) => {
+            const authContainer = document.getElementById('authContainer');
+            const myCollectionsLink = document.getElementById('myCollectionsLink');
+            if (user) {
+                authContainer.innerHTML = `<div class="side-menu-user"><p>Welcome, ${user.displayName.split(' ')[0]}!</p><a href="#" id="signOutBtn" class="side-menu-signin">Sign Out</a></div>`;
+                document.getElementById('signOutBtn').addEventListener('click', (e) => { e.preventDefault(); auth.signOut(); });
+                myCollectionsLink.href = 'my-creations.html';
+            } else {
+                authContainer.innerHTML = `<a href="#" id="signInBtn" class="side-menu-signin">Sign In</a>`;
+                document.getElementById('signInBtn').addEventListener('click', (e) => { e.preventDefault(); const provider = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(provider).catch(error => console.error(error)); });
+                myCollectionsLink.href = '#';
+            }
+        });
+
+        loadPublicCreations();
+    </script>
+
+</body>
+
+</html>

@@ -26,6 +26,7 @@ let soundFile;
 let isRecording = false;
 
 function setup() {
+  pixelDensity(1);
   let canvas = createCanvas(640, 640);
   canvas.parent("canvasContainer");
 
@@ -107,6 +108,48 @@ function toggleFreeze() {
     button.innerHTML = "Freeze Image";
   }
 }
+<<<<<<< Updated upstream
+=======
+function createCircularTransparentImage() {
+  let currentCanvasImage = get();
+  currentCanvasImage.mask(mask);
+  return currentCanvasImage;
+}
+function rotateCanvas() {
+  //add a rotating record in the background
+  let recordRotate = sin(millis() / 100) / 50;
+  background(150, 255, 210);
+  fill(50);
+  circle(width / 2, height / 2, 640);
+  fill(70);
+  arc(width / 2, height / 2, 640, 640, 0 + recordRotate, PI / 6 + recordRotate);
+  arc(width / 2, height / 2, 640, 640, PI + recordRotate, PI * 7 / 6 + recordRotate);
+  fill(200);
+  arc(width / 2, height / 2, 640, 640, PI / 20 + recordRotate, PI / 10 + recordRotate);
+  arc(width / 2, height / 2, 640, 640, PI + PI / 20 + recordRotate, PI + PI / 10 + recordRotate);
+  push();
+  scale(1 + sin(millis() / 100) / 500);
+  stroke(0); noFill();
+  circle(width / 2, height / 2, 570);
+  circle(width / 2, height / 2, 550);
+  circle(width / 2, height / 2, 450);
+  circle(width / 2, height / 2, 400);
+  fill(50);
+  circle(width / 2, height / 2, 320);
+  pop();
+  //draw the frozen image in the center with rotation
+  push();
+  imageMode(CENTER);
+  translate(width / 2, height / 2);
+  rotate(rotationAngle);
+  scale(0.5);
+  // let newImage = frozenImage.mask(mask);
+  image(frozenImage, 0, 0);
+  rotationAngle += 0.01;
+  pop();
+}
+
+>>>>>>> Stashed changes
 
 function saveLocalImage() {
   if (frozenImage) {
